@@ -36,29 +36,29 @@ public class Main {
             return new ArrayList<>();
         }
 
-        Graph editedGraph = graph.copy();
-        int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getV());
-        List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
+        List<Edge> edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
         if (edgesToEdit != null) {
             edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getV()), Math.max(p3.getU(), p3.getV())));
             return edgesToEdit;
         }
+        graph.editEdge(p3.getU(), p3.getV());
 
-        editedGraph = graph.copy();
-        oldEdgeWeight = editedGraph.editEdge(p3.getV(), p3.getW());
-        edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        oldEdgeWeight = graph.editEdge(p3.getV(), p3.getW());
+        edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
         if (edgesToEdit != null) {
             edgesToEdit.add(new Edge(Math.min(p3.getV(), p3.getW()), Math.max(p3.getV(), p3.getW())));
             return edgesToEdit;
         }
+        graph.editEdge(p3.getV(), p3.getW());
 
-        editedGraph = graph.copy();
-        oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getW());
-        edgesToEdit = ceBranch(editedGraph, k + oldEdgeWeight);
+        oldEdgeWeight = graph.editEdge(p3.getU(), p3.getW());
+        edgesToEdit = ceBranch(graph, k + oldEdgeWeight);
         if (edgesToEdit != null) {
             edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getW()), Math.max(p3.getU(), p3.getW())));
             return edgesToEdit;
         }
+        graph.editEdge(p3.getU(), p3.getW());
 
         return null;
     }
