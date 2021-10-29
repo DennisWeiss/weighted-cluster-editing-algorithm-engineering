@@ -38,12 +38,22 @@ public class Graph {
                 copy.getEdges()[i][j] = edges[i][j];
             }
         }
+        copy.fillAdjacencyListsFromEdges();
         return copy;
     }
 
     public int editEdge(int i, int j) {
-        edges[Math.min(i, j)][Math.max(i, j)] *= -1;
-        return -edges[Math.min(i, j)][Math.max(i, j)];
+        int min = Math.min(i, j);
+        int max = Math.max(i, j);
+        if (edges[min][max] > 0) {
+            this.adjacencyLists.get(i).remove(j);
+            this.adjacencyLists.get(j).remove(i);
+        } else {
+            this.adjacencyLists.get(i).add(j);
+            this.adjacencyLists.get(j).add(i);
+        }
+        edges[min][max] *= -1;
+        return -edges[min][max];
     }
 
     public P3 findP3() {
@@ -133,5 +143,13 @@ public class Graph {
 
     public void setEdges(int[][] edges) {
         this.edges = edges;
+    }
+
+    public Map<Integer, Set<Integer>> getAdjacencyLists() {
+        return adjacencyLists;
+    }
+
+    public void setAdjacencyLists(Map<Integer, Set<Integer>> adjacencyLists) {
+        this.adjacencyLists = adjacencyLists;
     }
 }
