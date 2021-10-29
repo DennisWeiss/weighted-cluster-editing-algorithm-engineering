@@ -7,6 +7,7 @@
     <groupId>berlin.tu</groupId>
     <artifactId>algorithm-engineering</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -14,6 +15,9 @@
     </properties>
 
     <build>
+        <finalName>
+            team3
+        </finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
