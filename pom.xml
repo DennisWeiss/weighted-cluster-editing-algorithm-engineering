@@ -38,7 +38,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>Main</mainClass>
+                            <mainClass>berlin.tu.algorithmengineering.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
