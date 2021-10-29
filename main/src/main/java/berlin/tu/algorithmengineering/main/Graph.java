@@ -1,8 +1,6 @@
-import model.Edge;
-import model.P3;
+package berlin.tu.algorithmengineering.main;
 
-import java.util.ArrayList;
-import java.util.List;
+import berlin.tu.algorithmengineering.model.P3;
 
 public class Graph {
 
