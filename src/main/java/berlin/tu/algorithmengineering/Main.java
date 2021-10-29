@@ -30,7 +30,7 @@ public class Main {
         }
     }
 
-    public static List<Edge> ceBranch(Graph graph, int k, boolean[][] history) {
+    public static List<Edge> ceBranch(Graph graph, int k) {
         if (k < 0) {
             return null;
         }
@@ -38,61 +38,37 @@ public class Main {
         if (p3 == null) {
             return new ArrayList<>();
         }
-        int min = Math.min(p3.getU(), p3.getV());
-        int max = Math.max(p3.getU(), p3.getV());
 
-        if(history[min][max] == false){
-            Graph editedGraph = graph.copy();
-            int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getV());
-        
-            history[min][max] = true;
-            List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight, history);
-            history[min][max] = false;
-
-            if (edgesToEdit != null) {
-                edgesToEdit.add(new Edge(min, max));
-                return edgesToEdit;
-            }
+        Graph editedGraph = graph.copy();
+        int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getV());
+        List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        if (edgesToEdit != null) {
+            edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getV()), Math.max(p3.getU(), p3.getV())));
+            return edgesToEdit;
         }
 
-        min = Math.min(p3.getV(), p3.getW());
-        max = Math.max(p3.getV(), p3.getW());
-        if(history[min][max] == false){
-            Graph editedGraph = graph.copy();
-            int oldEdgeWeight = editedGraph.editEdge(p3.getV(), p3.getW());
-           
-            history[min][max] = true;
-            List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight, history);
-            history[min][max] = false;
-            if (edgesToEdit != null) {
-                edgesToEdit.add(new Edge(min, max));
-                return edgesToEdit;
-            }
+        editedGraph = graph.copy();
+        oldEdgeWeight = editedGraph.editEdge(p3.getV(), p3.getW());
+        edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        if (edgesToEdit != null) {
+            edgesToEdit.add(new Edge(Math.min(p3.getV(), p3.getW()), Math.max(p3.getV(), p3.getW())));
+            return edgesToEdit;
         }
 
-        min = Math.min(p3.getU(), p3.getW());
-        max = Math.max(p3.getU(), p3.getW());
-        if(history[min][max] == false){
-            Graph editedGraph = graph.copy();
-            int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getW());
-            
-            history[min][max] = true;
-            List<Edge> edgesToEdit = ceBranch(editedGraph, k + oldEdgeWeight, history);
-            history[min][max] = false;
-    
-            if (edgesToEdit != null) {
-                edgesToEdit.add(new Edge(min, max));
-                return edgesToEdit;
-            }
+        editedGraph = graph.copy();
+        oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getW());
+        edgesToEdit = ceBranch(editedGraph, k + oldEdgeWeight);
+        if (edgesToEdit != null) {
+            edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getW()), Math.max(p3.getU(), p3.getW())));
+            return edgesToEdit;
         }
 
         return null;
     }
 
     public static List<Edge> ce(Graph graph) {
-        boolean[][] history = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         for (int k = 0; ; k++) {
-            List<Edge> edgesToEdit = ceBranch(graph, k, history);
+            List<Edge> edgesToEdit = ceBranch(graph, k);
             if (edgesToEdit != null) {
                 return edgesToEdit;
             }
