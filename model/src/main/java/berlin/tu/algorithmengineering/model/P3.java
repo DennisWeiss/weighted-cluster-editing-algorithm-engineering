@@ -1,4 +1,4 @@
-package model;
+package berlin.tu.algorithmengineering.model;
 
 public class P3 {
     private int u;
