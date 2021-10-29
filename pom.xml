@@ -15,9 +15,7 @@
     </properties>
 
     <build>
-        <finalName>
-            team3
-        </finalName>
+        <finalName>team3</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
