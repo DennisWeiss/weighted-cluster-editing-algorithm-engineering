@@ -3,20 +3,38 @@ package berlin.tu.algorithmengineering;
 
 import berlin.tu.algorithmengineering.model.P3;
 
+import java.util.*;
+
 public class Graph {
 
     private int numberOfVertices;
     private int[][] edges;
+    private Map<Integer, Set<Integer>> adjacencyLists = new HashMap<>();
 
     public Graph(int numberOfVertices) {
         this.numberOfVertices = numberOfVertices;
         this.edges = new int[numberOfVertices][numberOfVertices];
+        for (int i = 0; i < numberOfVertices; i++) {
+            HashSet<Integer> adjacencyList = new HashSet<>();
+            adjacencyLists.put(i, adjacencyList);
+        }
+    }
+
+    public void fillAdjacencyListsFromEdges() {
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = i + 1; j < numberOfVertices; j++) {
+                if (edges[i][j] > 0) {
+                    adjacencyLists.get(i).add(j);
+                    adjacencyLists.get(j).add(i);
+                }
+            }
+        }
     }
 
     public Graph copy() {
         Graph copy = new Graph(numberOfVertices);
         for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i+1; j < numberOfVertices; j++) {
+            for (int j = i + 1; j < numberOfVertices; j++) {
                 copy.getEdges()[i][j] = edges[i][j];
             }
         }
@@ -29,23 +47,77 @@ public class Graph {
     }
 
     public P3 findP3() {
-        for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i+1; j < numberOfVertices; j++) {
-                for (int k = j+1; k < numberOfVertices; k++) {
-                    if (edges[i][j] > 0 && edges[j][k] > 0 && edges[i][k] <= 0) {
-                        return new P3(i, j, k);
-                    }
-                    if (edges[i][j] > 0 && edges[i][k] > 0 && edges[j][k] <= 0) {
-                        return new P3(j, i, k);
-                    }
-                    if (edges[j][k] > 0 && edges[i][k] > 0 && edges[i][j] <= 0) {
-                        return new P3(i, k, j);
-                    }
+        List<Integer> verticesOfConnectedComponents = findVerticesOfConnectedComponents();
+        for (Integer v : verticesOfConnectedComponents) {
+            P3 p3 = findP3(v);
+            if (p3 != null) {
+                return p3;
+            }
+        }
+        return null;
+    }
+
+    private P3 findP3(int u) {
+        P3 p3In2Closure = findP3In2Closure(u);
+
+        if (p3In2Closure != null) {
+            return p3In2Closure;
+        }
+
+        Set<Integer> adjacentVertices = adjacencyLists.get(u);
+        for (Integer v : adjacentVertices) {
+            if (adjacencyLists.get(v).size() < adjacentVertices.size()) {
+                return findP3In2Closure(v);
+            }
+        }
+
+        return null;
+    }
+
+    private P3 findP3In2Closure(int u) {
+        Set<Integer> adjacentVertices = adjacencyLists.get(u);
+        for (Integer v : adjacentVertices) {
+            for (Integer w : adjacencyLists.get(v)) {
+                if (w != u && !adjacentVertices.contains(w)) {
+                    return new P3(u, v, w);
                 }
             }
         }
         return null;
     }
+
+    /**
+     * Returns a list of integers where each integer is one vertex of one connected component
+     */
+    private List<Integer> findVerticesOfConnectedComponents() {
+        List<Integer> verticesOfConnectedComponents = new ArrayList<>();
+
+        Set<Integer> remainingVertices = new HashSet<>();
+        for (int i = 0; i < numberOfVertices; i++) {
+            remainingVertices.add(i);
+        }
+        while (!remainingVertices.isEmpty()) {
+            Integer v = remainingVertices.iterator().next();
+            remainingVertices.remove(v);
+            verticesOfConnectedComponents.add(v);
+            Set<Integer> visitedVertices = new HashSet<>();
+            visitedVertices.add(v);
+            depthFirstSearch(v, visitedVertices);
+            remainingVertices.removeAll(visitedVertices);
+        }
+
+        return verticesOfConnectedComponents;
+    }
+
+    private void depthFirstSearch(Integer v, Set<Integer> visitedVertices) {
+        for (Integer w : adjacencyLists.get(v)) {
+            if (!visitedVertices.contains(w)) {
+                visitedVertices.add(w);
+                depthFirstSearch(w, visitedVertices);
+            }
+        }
+    }
+
 
     public int getNumberOfVertices() {
         return numberOfVertices;

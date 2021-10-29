@@ -26,6 +26,8 @@ public class Main {
             }
         }
 
+        graph.fillAdjacencyListsFromEdges();
+
         List<Edge> edgesToEdit = ce(graph);
         for (Edge edge : edgesToEdit) {
             System.out.printf("%d %d\n", edge.getA() + 1, edge.getB() + 1);
