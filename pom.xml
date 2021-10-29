@@ -6,7 +6,6 @@
 
     <groupId>berlin.tu</groupId>
     <artifactId>algorithm-engineering</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
