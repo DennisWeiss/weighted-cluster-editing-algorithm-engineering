@@ -1,8 +1,4 @@
-import model.Edge;
 import model.P3;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Graph {
 
