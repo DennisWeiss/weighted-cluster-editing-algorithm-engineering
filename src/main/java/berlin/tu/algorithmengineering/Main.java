@@ -8,6 +8,8 @@ import java.util.Scanner;
 
 public class Main {
 
+    private static int recursiveSteps = 0;
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int numberOfVertices = scanner.nextInt();
@@ -26,12 +28,14 @@ public class Main {
         for (Edge edge : edgesToEdit) {
             System.out.printf("%d %d\n", edge.getA() + 1, edge.getB() + 1);
         }
+        System.out.printf("#recursive steps: %d\n", recursiveSteps);
     }
 
     public static List<Edge> ceBranch(Graph graph, int k) {
         if (k < 0) {
             return null;
         }
+        recursiveSteps++;
         P3 p3 = graph.findP3();
         if (p3 == null) {
             return new ArrayList<>();
