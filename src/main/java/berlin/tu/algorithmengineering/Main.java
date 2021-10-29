@@ -1,8 +1,6 @@
-package berlin.tu.algorithmengineering.main;
+package berlin.tu.algorithmengineering;
 
 
-import berlin.tu.algorithmengineering.model.Edge;
-import berlin.tu.algorithmengineering.model.P3;
 
 import java.util.ArrayList;
 import java.util.List;

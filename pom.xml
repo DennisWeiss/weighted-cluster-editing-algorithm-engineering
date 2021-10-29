@@ -6,12 +6,7 @@
 
     <groupId>berlin.tu</groupId>
     <artifactId>algorithm-engineering</artifactId>
-    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
-    <modules>
-        <module>main</module>
-        <module>model</module>
-    </modules>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -38,7 +33,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>Main</mainClass>
+                            <mainClass>berlin.tu.algorithmengineering.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

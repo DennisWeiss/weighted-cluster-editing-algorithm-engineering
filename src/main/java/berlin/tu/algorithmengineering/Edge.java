@@ -1,4 +1,4 @@
-package berlin.tu.algorithmengineering.model;
+package berlin.tu.algorithmengineering;
 
 public class Edge {
     private int a;
