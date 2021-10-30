@@ -2,6 +2,9 @@ package berlin.tu.algorithmengineering;
 
 
 
+import berlin.tu.algorithmengineering.model.Edge;
+import berlin.tu.algorithmengineering.model.P3;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;

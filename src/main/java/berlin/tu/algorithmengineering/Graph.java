@@ -1,6 +1,8 @@
 package berlin.tu.algorithmengineering;
 
 
+import berlin.tu.algorithmengineering.model.P3;
+
 public class Graph {
 
     private int numberOfVertices;
