@@ -45,6 +45,112 @@ public class Main {
             return new ArrayList<>();
         }
 
+        int uv = graph.getEdges()[Math.min(p3.getU(), p3.getV())][Math.max(p3.getU(), p3.getV())];
+        int vw = graph.getEdges()[Math.min(p3.getV(), p3.getW())][Math.max(p3.getV(), p3.getW())];
+        int uw = -graph.getEdges()[Math.min(p3.getU(), p3.getW())][Math.max(p3.getU(), p3.getW())];
+
+        List<Edge> edgesToEdit;
+
+        if (uv > vw && uv > uw) {
+            edgesToEdit = branchOnUV(graph, k, p3);
+            if (edgesToEdit != null) {
+                return edgesToEdit;
+            }
+            if (vw > uw) {
+                edgesToEdit = branchOnVW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+                edgesToEdit = branchOnUW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+            } else {
+                edgesToEdit = branchOnUW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+                edgesToEdit = branchOnVW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+            }
+        } else if (vw > uv && vw > uw) {
+            edgesToEdit = branchOnVW(graph, k, p3);
+            if (edgesToEdit != null) {
+                return edgesToEdit;
+            }
+            if (uv > uw) {
+                edgesToEdit = branchOnUV(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+                edgesToEdit = branchOnUW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+            } else {
+                edgesToEdit = branchOnUW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+                edgesToEdit = branchOnUV(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+            }
+        } else {
+            edgesToEdit = branchOnUW(graph, k, p3);
+            if (edgesToEdit != null) {
+                return edgesToEdit;
+            }
+            if (vw > uv) {
+                edgesToEdit = branchOnVW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+                edgesToEdit = branchOnUV(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+            } else {
+                edgesToEdit = branchOnUV(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+                edgesToEdit = branchOnVW(graph, k, p3);
+                if (edgesToEdit != null) {
+                    return edgesToEdit;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static List<Edge> branchOnUW(Graph graph, int k, P3 p3) {
+        Graph editedGraph = graph.copy();
+        int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getW());
+        List<Edge> edgesToEdit = ceBranch(editedGraph, k + oldEdgeWeight);
+        if (edgesToEdit != null) {
+            edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getW()), Math.max(p3.getU(), p3.getW())));
+            return edgesToEdit;
+        }
+        return null;
+    }
+
+    private static List<Edge> branchOnVW(Graph graph, int k, P3 p3) {
+        Graph editedGraph = graph.copy();
+        int oldEdgeWeight = editedGraph.editEdge(p3.getV(), p3.getW());
+        List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        if (edgesToEdit != null) {
+            edgesToEdit.add(new Edge(Math.min(p3.getV(), p3.getW()), Math.max(p3.getV(), p3.getW())));
+            return edgesToEdit;
+        }
+        return null;
+    }
+
+    private static List<Edge> branchOnUV(Graph graph, int k, P3 p3) {
         Graph editedGraph = graph.copy();
         int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getV());
         List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
@@ -52,23 +158,6 @@ public class Main {
             edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getV()), Math.max(p3.getU(), p3.getV())));
             return edgesToEdit;
         }
-
-        editedGraph = graph.copy();
-        oldEdgeWeight = editedGraph.editEdge(p3.getV(), p3.getW());
-        edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
-        if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(Math.min(p3.getV(), p3.getW()), Math.max(p3.getV(), p3.getW())));
-            return edgesToEdit;
-        }
-
-        editedGraph = graph.copy();
-        oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getW());
-        edgesToEdit = ceBranch(editedGraph, k + oldEdgeWeight);
-        if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getW()), Math.max(p3.getU(), p3.getW())));
-            return edgesToEdit;
-        }
-
         return null;
     }
 
