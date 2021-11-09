@@ -3,6 +3,7 @@ package berlin.tu.algorithmengineering;
 
 import berlin.tu.algorithmengineering.model.Edge;
 import berlin.tu.algorithmengineering.model.P3;
+import berlin.tu.algorithmengineering.model.Vertex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +21,12 @@ public class Main {
 
         for (int i = 0; i < numberOfVertices; i++) {
             for (int j = i+1; j < numberOfVertices; j++) {
-                int vertex1 = scanner.nextInt();
-                int vertex2 = scanner.nextInt();
-                graph.getEdges()[Math.min(vertex1, vertex2) - 1][Math.max(vertex1, vertex2) - 1] = scanner.nextInt();
+                Vertex vertex1 = graph.getVertices().get(scanner.nextInt()-1);
+                Vertex vertex2 = graph.getVertices().get(scanner.nextInt()-1);
+
+                int weight = scanner.nextInt();
+                vertex1.addNeighbor(vertex2,weight);
+                vertex1.addNeighbor(vertex2,weight);
             }
         }
 
@@ -40,32 +44,31 @@ public class Main {
 
         recursiveSteps++;
 
+        //TODO kernelization
+
         P3 p3 = graph.findP3();
         if (p3 == null) {
             return new ArrayList<>();
         }
 
-        Graph editedGraph = graph.copy();
-        int oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getV());
-        List<Edge> edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
+        List<Edge> edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
         if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getV()), Math.max(p3.getU(), p3.getV())));
+            edgesToEdit.add(new Edge(Math.min(p3.getU().getId(), p3.getV().getId()), Math.max(p3.getU().getId(), p3.getV().getId())));
             return edgesToEdit;
         }
 
-        editedGraph = graph.copy();
-        oldEdgeWeight = editedGraph.editEdge(p3.getV(), p3.getW());
-        edgesToEdit = ceBranch(editedGraph, k - oldEdgeWeight);
+        oldEdgeWeight = graph.editEdge(p3.getV(), p3.getW());
+        edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
         if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(Math.min(p3.getV(), p3.getW()), Math.max(p3.getV(), p3.getW())));
+            edgesToEdit.add(new Edge(Math.min(p3.getV().getId(), p3.getW().getId()), Math.max(p3.getV().getId(), p3.getW().getId())));
             return edgesToEdit;
         }
 
-        editedGraph = graph.copy();
-        oldEdgeWeight = editedGraph.editEdge(p3.getU(), p3.getW());
-        edgesToEdit = ceBranch(editedGraph, k + oldEdgeWeight);
+        oldEdgeWeight = graph.editEdge(p3.getU(), p3.getW());
+        edgesToEdit = ceBranch(graph, k + oldEdgeWeight);
         if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(Math.min(p3.getU(), p3.getW()), Math.max(p3.getU(), p3.getW())));
+            edgesToEdit.add(new Edge(Math.min(p3.getU().getId(), p3.getW().getId()), Math.max(p3.getU().getId(), p3.getW().getId())));
             return edgesToEdit;
         }
 

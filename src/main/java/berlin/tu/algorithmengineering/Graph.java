@@ -2,44 +2,44 @@ package berlin.tu.algorithmengineering;
 
 
 import berlin.tu.algorithmengineering.model.P3;
+import berlin.tu.algorithmengineering.model.Vertex;
+import berlin.tu.algorithmengineering.model.WeightedNeighbor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Graph {
 
-    private int numberOfVertices;
-    private int[][] edges;
+    private List<Vertex> vertices;
 
     public Graph(int numberOfVertices) {
-        this.numberOfVertices = numberOfVertices;
-        this.edges = new int[numberOfVertices][numberOfVertices];
-    }
-
-    public Graph copy() {
-        Graph copy = new Graph(numberOfVertices);
-        for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i+1; j < numberOfVertices; j++) {
-                copy.getEdges()[i][j] = edges[i][j];
-            }
+        this.vertices = new ArrayList<>(numberOfVertices);
+        for (int i = 0; i< numberOfVertices; i++){
+            vertices.add(new Vertex(i));
         }
-        return copy;
     }
 
-    public int editEdge(int i, int j) {
-        edges[Math.min(i, j)][Math.max(i, j)] *= -1;
-        return -edges[Math.min(i, j)][Math.max(i, j)];
+    public int editEdge(Vertex i, Vertex j) {
+        WeightedNeighbor ij = i.getNeighbors().stream()
+                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(j)).findFirst().orElseThrow();
+        ij.flipEdgeExistence();
+        WeightedNeighbor ji = j.getNeighbors().stream()
+                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(i)).findFirst().orElseThrow();
+        ji.flipEdgeExistence();
+
+        return -ij.getWeight();
     }
 
     public P3 findP3() {
-        for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i+1; j < numberOfVertices; j++) {
-                for (int k = j+1; k < numberOfVertices; k++) {
-                    if (edges[i][j] > 0 && edges[j][k] > 0 && edges[i][k] <= 0) {
-                        return new P3(i, j, k);
-                    }
-                    if (edges[i][j] > 0 && edges[i][k] > 0 && edges[j][k] <= 0) {
-                        return new P3(j, i, k);
-                    }
-                    if (edges[j][k] > 0 && edges[i][k] > 0 && edges[i][j] <= 0) {
-                        return new P3(i, k, j);
+        for (int i = 0; i < getNumberOfVertices(); i++) {
+            Vertex u = vertices.get(i);
+            for (WeightedNeighbor uv: u.getNeighbors()) {
+                for (WeightedNeighbor uw: u.getNeighbors()) {
+                    WeightedNeighbor vw = uv.getVertex().getNeighbors().stream()
+                            .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElseThrow();
+                    if (! uv.getVertex().equals(uw.getVertex())
+                            && uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
+                        return new P3(u, uv.getVertex(), uw.getVertex());
                     }
                 }
             }
@@ -48,18 +48,10 @@ public class Graph {
     }
 
     public int getNumberOfVertices() {
-        return numberOfVertices;
+        return vertices.size();
     }
 
-    public void setNumberOfVertices(int numberOfVertices) {
-        this.numberOfVertices = numberOfVertices;
-    }
-
-    public int[][] getEdges() {
-        return edges;
-    }
-
-    public void setEdges(int[][] edges) {
-        this.edges = edges;
+    public List<Vertex> getVertices() {
+        return vertices;
     }
 }

@@ -1,37 +1,37 @@
 package berlin.tu.algorithmengineering.model;
 
 public class P3 {
-    private int u;
-    private int v;
-    private int w;
+    private Vertex u;
+    private Vertex v;
+    private Vertex w;
 
-    public P3(int u, int v, int w) {
+    public P3(Vertex u, Vertex v, Vertex w) {
         this.u = u;
         this.v = v;
         this.w = w;
     }
 
-    public int getU() {
+    public Vertex getU() {
         return u;
     }
 
-    public void setU(int u) {
+    public void setU(Vertex u) {
         this.u = u;
     }
 
-    public int getV() {
+    public Vertex getV() {
         return v;
     }
 
-    public void setV(int v) {
+    public void setV(Vertex v) {
         this.v = v;
     }
 
-    public int getW() {
+    public Vertex getW() {
         return w;
     }
 
-    public void setW(int w) {
+    public void setW(Vertex w) {
         this.w = w;
     }
 }
