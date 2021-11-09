@@ -7,7 +7,6 @@ import berlin.tu.algorithmengineering.model.WeightedNeighbor;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class Graph {
 
