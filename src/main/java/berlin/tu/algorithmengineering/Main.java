@@ -26,7 +26,7 @@ public class Main {
 
                 int weight = scanner.nextInt();
                 vertex1.addNeighbor(vertex2,weight);
-                vertex1.addNeighbor(vertex2,weight);
+                vertex2.addNeighbor(vertex1,weight);
             }
         }
 
@@ -57,6 +57,7 @@ public class Main {
             edgesToEdit.add(new Edge(Math.min(p3.getU().getId(), p3.getV().getId()), Math.max(p3.getU().getId(), p3.getV().getId())));
             return edgesToEdit;
         }
+        graph.editEdge(p3.getU(), p3.getV());
 
         oldEdgeWeight = graph.editEdge(p3.getV(), p3.getW());
         edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
@@ -64,6 +65,7 @@ public class Main {
             edgesToEdit.add(new Edge(Math.min(p3.getV().getId(), p3.getW().getId()), Math.max(p3.getV().getId(), p3.getW().getId())));
             return edgesToEdit;
         }
+        graph.editEdge(p3.getV(), p3.getW());
 
         oldEdgeWeight = graph.editEdge(p3.getU(), p3.getW());
         edgesToEdit = ceBranch(graph, k + oldEdgeWeight);
@@ -71,6 +73,7 @@ public class Main {
             edgesToEdit.add(new Edge(Math.min(p3.getU().getId(), p3.getW().getId()), Math.max(p3.getU().getId(), p3.getW().getId())));
             return edgesToEdit;
         }
+        graph.editEdge(p3.getU(), p3.getW());
 
         return null;
     }

@@ -7,6 +7,7 @@ import berlin.tu.algorithmengineering.model.WeightedNeighbor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Graph {
 
@@ -35,11 +36,12 @@ public class Graph {
             Vertex u = vertices.get(i);
             for (WeightedNeighbor uv: u.getNeighbors()) {
                 for (WeightedNeighbor uw: u.getNeighbors()) {
-                    WeightedNeighbor vw = uv.getVertex().getNeighbors().stream()
-                            .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElseThrow();
-                    if (! uv.getVertex().equals(uw.getVertex())
-                            && uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
-                        return new P3(u, uv.getVertex(), uw.getVertex());
+                    if (!uv.getVertex().equals(uw.getVertex())) {
+                        WeightedNeighbor vw = uv.getVertex().getNeighbors().stream()
+                                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElseThrow();
+                        if (uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
+                            return new P3(u, uv.getVertex(), uw.getVertex());
+                        }
                     }
                 }
             }

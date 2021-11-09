@@ -1,18 +1,18 @@
 package berlin.tu.algorithmengineering.model;
 
 public class WeightedNeighbor {
-    private Vertex neighbor;
+    private Vertex vertex;
     private int weight;
     private boolean edgeExists;
 
-    public WeightedNeighbor(Vertex neighbor, int weight) {
-        this.neighbor = neighbor;
+    public WeightedNeighbor(Vertex vertex, int weight) {
+        this.vertex = vertex;
         this.weight = weight;
         this.edgeExists = weight > 0;
     }
 
     public Vertex getVertex() {
-        return neighbor;
+        return vertex;
     }
 
     public int getWeight() {
