@@ -1,5 +1,7 @@
 package berlin.tu.algorithmengineering.model;
 
+import java.util.Objects;
+
 public class WeightedNeighbor {
     private Vertex vertex;
     private int weight;

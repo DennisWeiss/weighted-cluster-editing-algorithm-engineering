@@ -39,9 +39,6 @@ public class Graph {
                     if (!uv.getVertex().equals(uw.getVertex())) {
                         WeightedNeighbor vw = uv.getVertex().getNeighbors().stream()
                                 .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElse(null);
-                        if (vw == null) {
-                            System.out.println("");
-                        }
                         if (uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
                             return new P3(u, uv.getVertex(), uw.getVertex());
                         }
