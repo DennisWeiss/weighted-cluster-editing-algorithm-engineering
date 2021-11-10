@@ -1,24 +1,25 @@
 package berlin.tu.algorithmengineering.model;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Vertex {
 
-    private int id;
+    private Integer id;
     private Set<WeightedNeighbor> neighbors;
-    private Set<Vertex> mergedFrom;//always 2
+    private Vertex mergedFrom1;
+    private Vertex mergedFrom2;
 
 
     public Vertex(int id) {
         this.id = id;
         this.neighbors = new HashSet<>();
-        this.mergedFrom = null;
     }
-    public Vertex(int id, Set<Vertex> mergedFrom) {
-        this.id = id;
+    public Vertex(Vertex mergedFrom1, Vertex mergedFrom2) {
         this.neighbors = new HashSet<>();
-        this.mergedFrom = mergedFrom;
+        this.mergedFrom1 = mergedFrom1;
+        this.mergedFrom2 = mergedFrom2;
     }
     public Set<WeightedNeighbor> getNeighbors() {
         return neighbors;
@@ -28,23 +29,41 @@ public class Vertex {
         this.neighbors = neighbors;
     }
 
-    public Set<Vertex> getMergedFrom() {
-        return mergedFrom;
+    public Integer getId() {
+        return id;
     }
 
-    public void setMergedFrom(Set<Vertex> mergedFrom) {
-        this.mergedFrom = mergedFrom;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
-    public void addNeighbor(Vertex vertex,int weight) {
+    public Vertex getMergedFrom1() {
+        return mergedFrom1;
+    }
+
+    public void setMergedFrom1(Vertex mergedFrom1) {
+        this.mergedFrom1 = mergedFrom1;
+    }
+
+    public Vertex getMergedFrom2() {
+        return mergedFrom2;
+    }
+
+    public void setMergedFrom2(Vertex mergedFrom2) {
+        this.mergedFrom2 = mergedFrom2;
+    }
+
+    public void addNeighbor(Vertex vertex, int weight) {
         this.neighbors.add(new WeightedNeighbor(vertex,weight));
     }
 
     public boolean equals(Vertex vertex){
-        return this.id == vertex.id;
-    }
-
-    public int getId() {
-        return id;
+        if (this.id != null && vertex.getId() != null) {
+            return this.id.equals(vertex.getId());
+        }
+        if ((this.id == null && vertex.getId() != null) || (this.id != null && vertex.getId() == null)) {
+            return false;
+        }
+        return mergedFrom1.equals(vertex.getMergedFrom1()) && mergedFrom2.equals(vertex.getMergedFrom2());
     }
 }

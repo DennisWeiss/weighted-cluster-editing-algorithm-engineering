@@ -7,6 +7,7 @@ import berlin.tu.algorithmengineering.model.WeightedNeighbor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Graph {
 
@@ -46,6 +47,18 @@ public class Graph {
             }
         }
         return null;
+    }
+
+    public static WeightedNeighbor getWeightedNeighbor(Vertex w, Vertex v) {
+        // TODO: Optimize!!!
+        WeightedNeighbor wv = null;
+        for (WeightedNeighbor wNeighbor : w.getNeighbors()) {
+            if (wNeighbor.getVertex().equals(v)) {
+                wv = wNeighbor;
+                break;
+            }
+        }
+        return Objects.requireNonNull(wv);
     }
 
     public int getNumberOfVertices() {
