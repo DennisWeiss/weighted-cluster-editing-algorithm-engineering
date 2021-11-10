@@ -38,7 +38,10 @@ public class Graph {
                 for (WeightedNeighbor uw: u.getNeighbors()) {
                     if (!uv.getVertex().equals(uw.getVertex())) {
                         WeightedNeighbor vw = uv.getVertex().getNeighbors().stream()
-                                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElseThrow();
+                                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElse(null);
+                        if (vw == null) {
+                            System.out.println("");
+                        }
                         if (uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
                             return new P3(u, uv.getVertex(), uw.getVertex());
                         }
@@ -58,7 +61,10 @@ public class Graph {
                 break;
             }
         }
-        return Objects.requireNonNull(wv);
+        if (wv == null) {
+            System.out.println("");
+        }
+        return wv;
     }
 
     public int getNumberOfVertices() {
