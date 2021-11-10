@@ -61,9 +61,6 @@ public class Graph {
                 break;
             }
         }
-        if (wv == null) {
-            System.out.println("");
-        }
         return wv;
     }
 
