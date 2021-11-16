@@ -21,11 +21,9 @@ public class Graph {
     }
 
     public int editEdge(Vertex i, Vertex j) {
-        WeightedNeighbor ij = i.getNeighbors().stream()
-                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(j)).findFirst().orElseThrow();
+        WeightedNeighbor ij = getWeightedNeighbor(i, j);
         ij.flipEdgeExistence();
-        WeightedNeighbor ji = j.getNeighbors().stream()
-                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(i)).findFirst().orElseThrow();
+        WeightedNeighbor ji = getWeightedNeighbor(j, i);
         ji.flipEdgeExistence();
 
         return -ij.getWeight();
@@ -34,11 +32,10 @@ public class Graph {
     public P3 findP3() {
         for (int i = 0; i < getNumberOfVertices(); i++) {
             Vertex u = vertices.get(i);
-            for (WeightedNeighbor uv: u.getNeighbors()) {
-                for (WeightedNeighbor uw: u.getNeighbors()) {
+            for (WeightedNeighbor uv: u.getNeighbors().values()) {
+                for (WeightedNeighbor uw: u.getNeighbors().values()) {
                     if (!uv.getVertex().equals(uw.getVertex())) {
-                        WeightedNeighbor vw = uv.getVertex().getNeighbors().stream()
-                                .filter(weightedNeighbor->weightedNeighbor.getVertex().equals(uw.getVertex())).findFirst().orElse(null);
+                        WeightedNeighbor vw = uv.getVertex().getNeighbors().get(uw.getVertex());
                         if (uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
                             return new P3(u, uv.getVertex(), uw.getVertex());
                         }
@@ -50,15 +47,7 @@ public class Graph {
     }
 
     public static WeightedNeighbor getWeightedNeighbor(Vertex w, Vertex v) {
-        // TODO: Optimize!!!
-        WeightedNeighbor wv = null;
-        for (WeightedNeighbor wNeighbor : w.getNeighbors()) {
-            if (wNeighbor.getVertex().equals(v)) {
-                wv = wNeighbor;
-                break;
-            }
-        }
-        return wv;
+        return w.getNeighbors().get(v);
     }
 
     public int getNumberOfVertices() {

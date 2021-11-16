@@ -49,11 +49,11 @@ public class Main {
         List<Edge> edgesToEdit;
 
         for (Vertex u : graph.getVertices()) {
-            for (WeightedNeighbor uv : u.getNeighbors()) {
+            for (WeightedNeighbor uv : u.getNeighbors().values()) {
                 if (uv.getWeight() > k) {
                     Vertex v = uv.getVertex();
                     Vertex mergedVertex = new Vertex(u, v);
-                    for (WeightedNeighbor uw : u.getNeighbors()) {
+                    for (WeightedNeighbor uw : u.getNeighbors().values()) {
                         Vertex w = uw.getVertex();
                         if (!w.equals(v)) {
                             WeightedNeighbor wv = Graph.getWeightedNeighbor(w, v);
@@ -61,10 +61,10 @@ public class Main {
 
                             int newWeight = wu.getWeight() + wv.getWeight();
                             WeightedNeighbor mergedWeightedNeighbor = new WeightedNeighbor(mergedVertex, newWeight);
-                            mergedVertex.getNeighbors().add(new WeightedNeighbor(w, newWeight));
+                            mergedVertex.addNeighbor(w, newWeight);
                             w.getNeighbors().remove(wu);
                             w.getNeighbors().remove(wv);
-                            w.getNeighbors().add(mergedWeightedNeighbor);
+                            w.getNeighbors().put(mergedWeightedNeighbor.getVertex(), mergedWeightedNeighbor);
                             if (Math.signum(wu.getWeight()) != Math.signum(wv.getWeight())) {
                                 k -= Math.min(Math.abs(wu.getWeight()), Math.abs(wv.getWeight()));
                             }
@@ -122,7 +122,7 @@ public class Main {
     private static List<Edge> reconstructMergeForEdgesToEditList(Vertex m, List<Edge> edgesToEdit) {
         Vertex u = m.getMergedFrom1();
         Vertex v = m.getMergedFrom2();
-        for (WeightedNeighbor uw : u.getNeighbors()) {
+        for (WeightedNeighbor uw : u.getNeighbors().values()) {
             Vertex w = uw.getVertex();
             if (!w.equals(v)) {
                 Edge mwEdge = new Edge(m, w);
@@ -132,7 +132,7 @@ public class Main {
                 }
             }
         }
-        for (WeightedNeighbor vw : v.getNeighbors()) {
+        for (WeightedNeighbor vw : v.getNeighbors().values()) {
             Vertex w = vw.getVertex();
             if (!w.equals(u)) {
                 Edge mwEdge = new Edge(m, w);
@@ -152,12 +152,12 @@ public class Main {
         Vertex u = m.getMergedFrom1();
         Vertex v = m.getMergedFrom2();
 
-        for (WeightedNeighbor mw : m.getNeighbors()) {
+        for (WeightedNeighbor mw : m.getNeighbors().values()) {
             Vertex w = mw.getVertex();
             WeightedNeighbor wm = Graph.getWeightedNeighbor(w, m);
             w.getNeighbors().remove(wm);
-            w.getNeighbors().add(new WeightedNeighbor(u, Graph.getWeightedNeighbor(u, w).getWeight()));
-            w.getNeighbors().add(new WeightedNeighbor(v, Graph.getWeightedNeighbor(v, w).getWeight()));
+            w.addNeighbor(u, Graph.getWeightedNeighbor(u, w).getWeight());
+            w.addNeighbor(v, Graph.getWeightedNeighbor(v, w).getWeight());
         }
 
         graph.getVertices().remove(m);

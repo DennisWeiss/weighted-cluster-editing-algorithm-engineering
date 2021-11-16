@@ -1,30 +1,34 @@
 package berlin.tu.algorithmengineering.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Vertex {
 
     private Integer id;
-    private Set<WeightedNeighbor> neighbors;
+    private Map<Vertex, WeightedNeighbor> neighbors;
     private Vertex mergedFrom1;
     private Vertex mergedFrom2;
 
 
     public Vertex(int id) {
         this.id = id;
-        this.neighbors = new HashSet<>();
+        this.neighbors = new HashMap<>();
     }
+
     public Vertex(Vertex mergedFrom1, Vertex mergedFrom2) {
-        this.neighbors = new HashSet<>();
+        this.neighbors = new HashMap<>();
         this.mergedFrom1 = mergedFrom1;
         this.mergedFrom2 = mergedFrom2;
     }
-    public Set<WeightedNeighbor> getNeighbors() {
+
+    public Map<Vertex, WeightedNeighbor> getNeighbors() {
         return neighbors;
     }
 
-    public void setNeighbors(Set<WeightedNeighbor> neighbors) {
+    public void setNeighbors(Map<Vertex, WeightedNeighbor> neighbors) {
         this.neighbors = neighbors;
     }
 
@@ -53,7 +57,7 @@ public class Vertex {
     }
 
     public void addNeighbor(Vertex vertex, int weight) {
-        this.neighbors.add(new WeightedNeighbor(vertex,weight));
+        this.neighbors.put(vertex, new WeightedNeighbor(vertex, weight));
     }
 
     public boolean equals(Vertex vertex){
