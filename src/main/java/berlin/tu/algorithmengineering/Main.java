@@ -62,8 +62,8 @@ public class Main {
                             int newWeight = wu.getWeight() + wv.getWeight();
                             WeightedNeighbor mergedWeightedNeighbor = new WeightedNeighbor(mergedVertex, newWeight);
                             mergedVertex.addNeighbor(w, newWeight);
-                            w.getNeighbors().remove(wu);
-                            w.getNeighbors().remove(wv);
+                            w.getNeighbors().remove(u);
+                            w.getNeighbors().remove(v);
                             w.getNeighbors().put(mergedWeightedNeighbor.getVertex(), mergedWeightedNeighbor);
                             if (Math.signum(wu.getWeight()) != Math.signum(wv.getWeight())) {
                                 k -= Math.min(Math.abs(wu.getWeight()), Math.abs(wv.getWeight()));
@@ -154,8 +154,7 @@ public class Main {
 
         for (WeightedNeighbor mw : m.getNeighbors().values()) {
             Vertex w = mw.getVertex();
-            WeightedNeighbor wm = Graph.getWeightedNeighbor(w, m);
-            w.getNeighbors().remove(wm);
+            w.getNeighbors().remove(m);
             w.addNeighbor(u, Graph.getWeightedNeighbor(u, w).getWeight());
             w.addNeighbor(v, Graph.getWeightedNeighbor(v, w).getWeight());
         }
