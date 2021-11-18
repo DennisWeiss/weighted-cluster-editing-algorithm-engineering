@@ -19,10 +19,12 @@ public class CostPerP3LowerBound implements WeightedClusteringLowerBound {
         double minCostPerP3 = Double.MAX_VALUE;
         for (Vertex v : graph.getVertices()) {
             for (WeightedNeighbor vw : v.getNeighbors().values()) {
-                int numberOfP3sOfEdge = getNumberOfP3sOfEdge(p3List, v, vw.getVertex());
-                if (numberOfP3sOfEdge > 0) {
-                    double costPerP3 =  (double) vw.getWeight() / numberOfP3sOfEdge;
-                    minCostPerP3 = Math.min(minCostPerP3, costPerP3);
+                if (vw.isEdgeExists()) {
+                    int numberOfP3sOfEdge = getNumberOfP3sOfEdge(p3List, v, vw.getVertex());
+                    if (numberOfP3sOfEdge > 0) {
+                        double costPerP3 =  (double) vw.getWeight() / numberOfP3sOfEdge;
+                        minCostPerP3 = Math.min(minCostPerP3, costPerP3);
+                    }
                 }
             }
         }
