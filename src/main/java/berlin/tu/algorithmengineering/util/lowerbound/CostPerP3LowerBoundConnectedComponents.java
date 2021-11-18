@@ -35,9 +35,11 @@ public class CostPerP3LowerBoundConnectedComponents implements WeightedClusterin
         unvisited.remove(vertex);
         Set<Vertex> vertices = new HashSet<>();
         for (WeightedNeighbor vw : vertex.getNeighbors().values()) {
-            Vertex w = vw.getVertex();
-            if (vw.isEdgeExists() && unvisited.contains(w)) {
-                vertices.addAll(getGraphOfConnectedComponent(graph, w, unvisited));
+            if (vw.isEdgeExists()) {
+                Vertex w = vw.getVertex();
+                if (vw.isEdgeExists() && unvisited.contains(w)) {
+                    vertices.addAll(getGraphOfConnectedComponent(graph, w, unvisited));
+                }
             }
         }
         return vertices;
