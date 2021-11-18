@@ -19,6 +19,10 @@ public class Graph {
         }
     }
 
+    public Graph(List<Vertex> vertices) {
+        this.vertices = vertices;
+    }
+
     public int editEdge(Vertex i, Vertex j) {
         WeightedNeighbor ij = getWeightedNeighbor(i, j);
         ij.flipEdgeExistence();

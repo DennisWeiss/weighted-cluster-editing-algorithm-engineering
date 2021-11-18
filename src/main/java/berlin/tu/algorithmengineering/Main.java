@@ -6,6 +6,7 @@ import berlin.tu.algorithmengineering.model.P3;
 import berlin.tu.algorithmengineering.model.Vertex;
 import berlin.tu.algorithmengineering.model.WeightedNeighbor;
 import berlin.tu.algorithmengineering.util.lowerbound.CostPerP3LowerBound;
+import berlin.tu.algorithmengineering.util.lowerbound.CostPerP3LowerBoundConnectedComponents;
 import berlin.tu.algorithmengineering.util.lowerbound.WeightedClusteringLowerBound;
 
 import java.util.ArrayList;
