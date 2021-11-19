@@ -7,6 +7,7 @@ import berlin.tu.algorithmengineering.model.Vertex;
 import berlin.tu.algorithmengineering.model.WeightedNeighbor;
 import berlin.tu.algorithmengineering.util.lowerbound.CostPerP3LowerBound;
 import berlin.tu.algorithmengineering.util.lowerbound.CostPerP3LowerBoundConnectedComponents;
+import berlin.tu.algorithmengineering.util.lowerbound.MinCostEdgeDisjointP3LowerBound;
 import berlin.tu.algorithmengineering.util.lowerbound.WeightedClusteringLowerBound;
 
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    public static WeightedClusteringLowerBound LOWER_BOUND = new CostPerP3LowerBound();
+    public static WeightedClusteringLowerBound LOWER_BOUND = new MinCostEdgeDisjointP3LowerBound();
 
     private static int recursiveSteps = 0;
 
