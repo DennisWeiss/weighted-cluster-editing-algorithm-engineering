@@ -46,6 +46,24 @@ public class Graph {
         return null;
     }
 
+    public List<P3> findAllP3() {
+        List<P3> p3List = new ArrayList<>();
+        for (int i = 0; i < getNumberOfVertices(); i++) {
+            Vertex u = vertices.get(i);
+            for (WeightedNeighbor uv: u.getNeighbors()) {
+                for (WeightedNeighbor uw: u.getNeighbors()) {
+                    if (!uv.getVertex().equals(uw.getVertex())) {
+                        WeightedNeighbor vw = getWeightedNeighbor(uv.getVertex(), uw.getVertex());
+                        if (uv.isEdgeExists() && vw.isEdgeExists() && !uw.isEdgeExists() ) {
+                            p3List.add(new P3(u, uv.getVertex(), uw.getVertex()));
+                        }
+                    }
+                }
+            }
+        }
+        return p3List;
+    }
+
     public static WeightedNeighbor getWeightedNeighbor(Vertex w, Vertex v) {
         return w.getNeighbors().get(v);
     }
