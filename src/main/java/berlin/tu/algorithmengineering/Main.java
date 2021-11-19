@@ -87,10 +87,12 @@ public class Main {
             }
         }
 
-        P3 p3 = graph.findP3();
-        if (p3 == null) {
+        List<P3> p3List = graph.findAllP3();
+        if (p3List.isEmpty()) {
             return new ArrayList<>();
         }
+
+        P3 p3 = getBiggestWeightP3(p3List);
 
         int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
         edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
@@ -117,6 +119,19 @@ public class Main {
         graph.editEdge(p3.getU(), p3.getW());
 
         return null;
+    }
+
+    private static P3 getBiggestWeightP3(List<P3> p3List) {
+        int biggestWeight = Integer.MIN_VALUE;
+        P3 biggestWeightP3 = null;
+        for (P3 p3 : p3List) {
+            int totalAbsoluteWeight = p3.getTotalAbsoluteWeight();
+            if (totalAbsoluteWeight > biggestWeight) {
+                biggestWeightP3 = p3;
+                biggestWeight = totalAbsoluteWeight;
+            }
+        }
+        return biggestWeightP3;
     }
 
     private static List<Edge> reconstructMergeForEdgesToEditList(Vertex m, List<Edge> edgesToEdit) {
