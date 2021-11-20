@@ -31,4 +31,9 @@ public class Edge {
     public boolean equals(Edge e) {
         return (a.equals(e.getA()) && b.equals(e.getB())) || (a.equals(e.getB()) && b.equals(e.getA()));
     }
+
+    @Override
+    public String toString() {
+        return "{" + a.toString() + "," + b.toString() + "}";
+    }
 }

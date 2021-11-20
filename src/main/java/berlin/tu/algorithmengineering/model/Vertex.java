@@ -65,4 +65,9 @@ public class Vertex {
         }
         return mergedFrom1.equals(vertex.getMergedFrom1()) && mergedFrom2.equals(vertex.getMergedFrom2());
     }
+
+    @Override
+    public String toString() {
+        return "(" + (id != null ? id + 1 : (mergedFrom1.toString() + '-' + mergedFrom2.toString())) + ')';
+    }
 }
