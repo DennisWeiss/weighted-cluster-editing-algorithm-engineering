@@ -1,5 +1,7 @@
 package berlin.tu.algorithmengineering.model;
 
+import berlin.tu.algorithmengineering.Graph;
+
 public class P3 {
     private Vertex u;
     private Vertex v;
@@ -9,6 +11,11 @@ public class P3 {
         this.u = u;
         this.v = v;
         this.w = w;
+    }
+
+    public int getTotalAbsoluteWeight() {
+        return Graph.getWeightedNeighbor(u, v).getWeight() + Graph.getWeightedNeighbor(v, w).getWeight()
+                - Graph.getWeightedNeighbor(u, w).getWeight();
     }
 
     public Vertex getU() {

@@ -70,12 +70,14 @@ public class Main {
             }
         }
 
-        P3 p3 = graph.findP3();
-        if (p3 == null) {
+        List<P3> p3List = graph.findAllP3();
+        if (p3List.isEmpty()) {
             return new ArrayList<>();
         }
 
         //delete edge uv
+        P3 p3 = getBiggestWeightP3(p3List);
+
         int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
         //todo mark as forbidden
         Edge uvEdge = new Edge(p3.getU(), p3.getV());
@@ -110,27 +112,27 @@ public class Main {
                 WeightedNeighbor wu = Graph.getWeightedNeighbor(w, u);
 
                 int newWeight = wu.getWeight() + wv.getWeight();
-                Edge uwEdge = new Edge(u,w);
-                Edge vwEdge = new Edge(v,w);
-                if (forbiddenEdges.stream().anyMatch(edge -> edge.equals(uwEdge))){
-                    forbiddenEdges.add(new Edge(w,mergedVertex));
-                    if(newWeight > 0){
+                Edge uwEdge = new Edge(u, w);
+                Edge vwEdge = new Edge(v, w);
+                if (forbiddenEdges.stream().anyMatch(edge -> edge.equals(uwEdge))) {
+                    forbiddenEdges.add(new Edge(w, mergedVertex));
+                    if (newWeight > 0) {
                         newWeight *= -1;
                     }
                     if (wv.isEdgeExists()) {
                         //TODO maybe editEdge?
                         costs += wv.getWeight();
                     }
-                }else if(forbiddenEdges.stream().anyMatch(edge -> edge.equals(vwEdge))){
-                    forbiddenEdges.add(new Edge(w,mergedVertex));
-                    if(newWeight > 0){
+                } else if (forbiddenEdges.stream().anyMatch(edge -> edge.equals(vwEdge))) {
+                    forbiddenEdges.add(new Edge(w, mergedVertex));
+                    if (newWeight > 0) {
                         newWeight *= -1;
                     }
                     if (wv.isEdgeExists()) {
                         //TODO maybe editEdge?
                         costs += wu.getWeight();
                     }
-                }else{
+                } else {
                     if (wu.isEdgeExists() != wv.isEdgeExists()) {
                         //TODO maybe editEdge?
                         costs += Math.min(Math.abs(wu.getWeight()), Math.abs(wv.getWeight()));
@@ -148,6 +150,19 @@ public class Main {
         graph.getVertices().remove(v);
         graph.getVertices().add(mergedVertex);
         return costs;
+    }
+
+    private static P3 getBiggestWeightP3(List<P3> p3List) {
+        int biggestWeight = Integer.MIN_VALUE;
+        P3 biggestWeightP3 = null;
+        for (P3 p3 : p3List) {
+            int totalAbsoluteWeight = p3.getTotalAbsoluteWeight();
+            if (totalAbsoluteWeight > biggestWeight) {
+                biggestWeightP3 = p3;
+                biggestWeight = totalAbsoluteWeight;
+            }
+        }
+        return biggestWeightP3;
     }
 
     private static List<Edge> reconstructMergeForEdgesToEditList(Vertex m, List<Edge> edgesToEdit) {
