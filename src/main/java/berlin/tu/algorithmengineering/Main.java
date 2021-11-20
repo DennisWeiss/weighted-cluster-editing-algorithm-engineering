@@ -6,16 +6,18 @@ import berlin.tu.algorithmengineering.model.P3;
 import berlin.tu.algorithmengineering.model.Vertex;
 import berlin.tu.algorithmengineering.model.WeightedNeighbor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Main {
 
     private static int recursiveSteps = 0;
+    private static int solk = 0;
+    private static Set forbiddenEdges;
 
     public static void main(String[] args) {
+        forbiddenEdges = new HashSet();
+
         Scanner scanner = new Scanner(System.in);
         int numberOfVertices = scanner.nextInt();
 
@@ -36,7 +38,7 @@ public class Main {
         for (Edge edge : edgesToEdit) {
             System.out.printf("%d %d\n", edge.getA().getId() + 1, edge.getB().getId() + 1);
         }
-        System.out.printf("#recursive steps: %d\n", recursiveSteps);
+        System.out.printf("#recursive steps: %d\n", solk);//TODO recursiveSteps
     }
 
     public static List<Edge> ceBranch(Graph graph, int k) {
@@ -53,27 +55,8 @@ public class Main {
                 if (uv.getWeight() > k) {
                     Vertex v = uv.getVertex();
                     Vertex mergedVertex = new Vertex(u, v);
-                    for (WeightedNeighbor uw : u.getNeighbors()) {
-                        Vertex w = uw.getVertex();
-                        if (!w.equals(v)) {
-                            WeightedNeighbor wv = Graph.getWeightedNeighbor(w, v);
-                            WeightedNeighbor wu = Graph.getWeightedNeighbor(w, u);
-
-                            int newWeight = wu.getWeight() + wv.getWeight();
-                            WeightedNeighbor mergedWeightedNeighbor = new WeightedNeighbor(mergedVertex, newWeight);
-                            mergedVertex.getNeighbors().add(new WeightedNeighbor(w, newWeight));
-                            w.getNeighbors().remove(wu);
-                            w.getNeighbors().remove(wv);
-                            w.getNeighbors().add(mergedWeightedNeighbor);
-                            if (Math.signum(wu.getWeight()) != Math.signum(wv.getWeight())) {
-                                k -= Math.min(Math.abs(wu.getWeight()), Math.abs(wv.getWeight()));
-                            }
-                        }
-                    }
-
-                    graph.getVertices().remove(u);
-                    graph.getVertices().remove(v);
-                    graph.getVertices().add(mergedVertex);
+                    int edgeWeight = adjustToMergedVertices(graph, u, v, mergedVertex);
+                    k -= edgeWeight;
 
                     edgesToEdit = ceBranch(graph, k);
 
@@ -92,31 +75,79 @@ public class Main {
             return new ArrayList<>();
         }
 
+        //delete edge uv
         int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
+        //todo mark as forbidden
+        Edge uvEdge = new Edge(p3.getU(), p3.getV());
+        forbiddenEdges.add(uvEdge);
         edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
         if (edgesToEdit != null) {
             edgesToEdit.add(new Edge(p3.getU(), p3.getV()));
             return edgesToEdit;
         }
         graph.editEdge(p3.getU(), p3.getV());
+        forbiddenEdges.remove(uvEdge);
 
-        oldEdgeWeight = graph.editEdge(p3.getV(), p3.getW());
-        edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
+        //merge u and v
+        Vertex mergedVertex = new Vertex(p3.getU(), p3.getV());
+        int edgeWeight = adjustToMergedVertices(graph, p3.getU(), p3.getV(), mergedVertex);
+        edgesToEdit = ceBranch(graph, k - edgeWeight);
+        reconstructMerge(graph, mergedVertex);
         if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(p3.getV(), p3.getW()));
+            edgesToEdit = reconstructMergeForEdgesToEditList(mergedVertex, edgesToEdit);
             return edgesToEdit;
         }
-        graph.editEdge(p3.getV(), p3.getW());
-
-        oldEdgeWeight = graph.editEdge(p3.getU(), p3.getW());
-        edgesToEdit = ceBranch(graph, k + oldEdgeWeight);
-        if (edgesToEdit != null) {
-            edgesToEdit.add(new Edge(p3.getU(), p3.getW()));
-            return edgesToEdit;
-        }
-        graph.editEdge(p3.getU(), p3.getW());
 
         return null;
+    }
+
+    private static int adjustToMergedVertices(Graph graph, Vertex u, Vertex v, Vertex mergedVertex) {
+        int costs = 0;
+        for (WeightedNeighbor uw : u.getNeighbors()) {
+            Vertex w = uw.getVertex();
+            if (!w.equals(v)) {
+                WeightedNeighbor wv = Graph.getWeightedNeighbor(w, v);
+                WeightedNeighbor wu = Graph.getWeightedNeighbor(w, u);
+
+                int newWeight = wu.getWeight() + wv.getWeight();
+                Edge uwEdge = new Edge(u,w);
+                Edge vwEdge = new Edge(v,w);
+                if (forbiddenEdges.stream().anyMatch(edge -> edge.equals(uwEdge))){
+                    forbiddenEdges.add(new Edge(w,mergedVertex));
+                    if(newWeight > 0){
+                        newWeight *= -1;
+                    }
+                    if (wv.isEdgeExists()) {
+                        //TODO maybe editEdge?
+                        costs += wv.getWeight();
+                    }
+                }else if(forbiddenEdges.stream().anyMatch(edge -> edge.equals(vwEdge))){
+                    forbiddenEdges.add(new Edge(w,mergedVertex));
+                    if(newWeight > 0){
+                        newWeight *= -1;
+                    }
+                    if (wv.isEdgeExists()) {
+                        //TODO maybe editEdge?
+                        costs += wu.getWeight();
+                    }
+                }else{
+                    if (wu.isEdgeExists() != wv.isEdgeExists()) {
+                        //TODO maybe editEdge?
+                        costs += Math.min(Math.abs(wu.getWeight()), Math.abs(wv.getWeight()));
+                    }
+                }
+
+                WeightedNeighbor mergedWeightedNeighbor = new WeightedNeighbor(mergedVertex, newWeight);
+                mergedVertex.getNeighbors().add(new WeightedNeighbor(w, newWeight));
+                w.getNeighbors().remove(wu);
+                w.getNeighbors().remove(wv);
+                w.getNeighbors().add(mergedWeightedNeighbor);
+            }
+        }
+        graph.getVertices().remove(u);
+        graph.getVertices().remove(v);
+        graph.getVertices().add(mergedVertex);
+        return costs;
     }
 
     private static List<Edge> reconstructMergeForEdgesToEditList(Vertex m, List<Edge> edgesToEdit) {
@@ -166,10 +197,11 @@ public class Main {
     }
 
     public static List<Edge> ce(Graph graph) {
-        for (int k = 7; ; k++) {
+        for (int k = 0; ; k++) {
             List<Edge> edgesToEdit = ceBranch(graph, k);
 
             if (edgesToEdit != null) {
+                solk = k;
                 return edgesToEdit;
             }
         }
