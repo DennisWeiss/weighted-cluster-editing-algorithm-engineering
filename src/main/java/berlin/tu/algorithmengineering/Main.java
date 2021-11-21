@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-    public static WeightedClusteringLowerBound LOWER_BOUND = new MinCostEdgeDisjointP3LowerBound();
+    public static MinCostEdgeDisjointP3LowerBound LOWER_BOUND = new MinCostEdgeDisjointP3LowerBound();
 
     private static int recursiveSteps = 0;
 
@@ -53,7 +53,7 @@ public class Main {
         recursiveSteps++;
 
         List<Edge> edgesToEdit = null;
-
+        List<P3> p3List;
         for (Vertex u : graph.getVertices()) {
             for (WeightedNeighbor uv : u.getNeighbors().values()) {
                 if (uv.getWeight() > k) {
@@ -80,8 +80,9 @@ public class Main {
                     graph.getVertices().remove(u);
                     graph.getVertices().remove(v);
                     graph.getVertices().add(mergedVertex);
+                    p3List = graph.findAllP3();
 
-                    if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(graph) <= k) {
+                    if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(p3List) <= k) {
                         edgesToEdit = ceBranch(graph, k);
                     }
 
@@ -95,7 +96,9 @@ public class Main {
             }
         }
 
-        List<P3> p3List = graph.findAllP3();
+        // also immer wenn wir das P3 ding holen können wir unsere Liste erweitern
+        p3List = graph.findAllP3();
+
         if (p3List.isEmpty()) {
             return new ArrayList<>();
         }
@@ -103,7 +106,7 @@ public class Main {
         P3 p3 = getBiggestWeightP3(p3List);
 
         int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
-        if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(graph) <= k) {
+        if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(p3List) <= k) {
             edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
             if (edgesToEdit != null) {
                 edgesToEdit.add(new Edge(p3.getU(), p3.getV()));
@@ -113,7 +116,7 @@ public class Main {
         graph.editEdge(p3.getU(), p3.getV());
 
         oldEdgeWeight = graph.editEdge(p3.getV(), p3.getW());
-        if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(graph) <= k) {
+        if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(p3List) <= k) {
             edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
             if (edgesToEdit != null) {
                 edgesToEdit.add(new Edge(p3.getV(), p3.getW()));
@@ -123,7 +126,7 @@ public class Main {
         graph.editEdge(p3.getV(), p3.getW());
 
         oldEdgeWeight = graph.editEdge(p3.getU(), p3.getW());
-        if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(graph) <= k) {
+        if (LOWER_BOUND == null || LOWER_BOUND.getLowerBound(p3List) <= k) {
             edgesToEdit = ceBranch(graph, k + oldEdgeWeight);
             if (edgesToEdit != null) {
                 edgesToEdit.add(new Edge(p3.getU(), p3.getW()));

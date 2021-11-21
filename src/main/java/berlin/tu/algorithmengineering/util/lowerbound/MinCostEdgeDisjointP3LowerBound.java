@@ -10,12 +10,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MinCostEdgeDisjointP3LowerBound implements WeightedClusteringLowerBound {
+public class MinCostEdgeDisjointP3LowerBound {
 
-    @Override
-    public double getLowerBound(Graph graph) {
+    public double getLowerBound(List<P3> list) {
         int lowerBound = 0;
-        for (P3 p3 : getEdgeDisjointP3List(graph)) {
+        for (P3 p3 : getEdgeDisjointP3List(list)) {
             Vertex u = p3.getU();
             Vertex v = p3.getV();
             Vertex w = p3.getW();
@@ -27,10 +26,10 @@ public class MinCostEdgeDisjointP3LowerBound implements WeightedClusteringLowerB
         return lowerBound;
     }
 
-    private List<P3> getEdgeDisjointP3List(Graph graph) {
+    private List<P3> getEdgeDisjointP3List(List<P3> list) {
         List<P3> edgeDisjointP3List = new ArrayList<>();
         Set<Vertex> verticesInEdgeDisjointP3List = new HashSet<>();
-        for (P3 p3 : graph.findAllP3()) {
+        for (P3 p3 : list) {
             if (getNumberOfVerticesInSet(p3, verticesInEdgeDisjointP3List) < 2) {
                 edgeDisjointP3List.add(p3);
                 verticesInEdgeDisjointP3List.add(p3.getU());
