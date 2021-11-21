@@ -105,7 +105,7 @@ public class Main {
 
     private static int adjustToMergedVertices(Graph graph, Vertex u, Vertex v, Vertex mergedVertex) {
         int costs = 0;
-        for (WeightedNeighbor uw : u.getNeighbors()) {
+        for (WeightedNeighbor uw : u.getNeighbors().values()) {
             Vertex w = uw.getVertex();
             if (!w.equals(v)) {
                 WeightedNeighbor wv = Graph.getWeightedNeighbor(w, v);
@@ -139,11 +139,10 @@ public class Main {
                     }
                 }
 
-                WeightedNeighbor mergedWeightedNeighbor = new WeightedNeighbor(mergedVertex, newWeight);
-                mergedVertex.getNeighbors().add(new WeightedNeighbor(w, newWeight));
-                w.getNeighbors().remove(wu);
-                w.getNeighbors().remove(wv);
-                w.getNeighbors().add(mergedWeightedNeighbor);
+                mergedVertex.addNeighbor(w, newWeight);
+                w.getNeighbors().remove(u);
+                w.getNeighbors().remove(v);
+                w.addNeighbor(mergedVertex, newWeight);
             }
         }
         graph.getVertices().remove(u);
