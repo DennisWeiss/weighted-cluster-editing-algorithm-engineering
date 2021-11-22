@@ -13,10 +13,10 @@ public class Main {
 
     private static int recursiveSteps = 0;
     private static int solk = 0;
-    private static Set forbiddenEdges;
+    private static Set<Edge> forbiddenEdges;
 
     public static void main(String[] args) {
-        forbiddenEdges = new HashSet();
+        forbiddenEdges = new HashSet<>();
 
         Scanner scanner = new Scanner(System.in);
         int numberOfVertices = scanner.nextInt();
@@ -38,7 +38,7 @@ public class Main {
         for (Edge edge : edgesToEdit) {
             System.out.printf("%d %d\n", edge.getA().getId() + 1, edge.getB().getId() + 1);
         }
-        System.out.printf("#recursive steps: %d\n", solk);//TODO recursiveSteps
+        System.out.printf("#recursive steps: %d\n", recursiveSteps);//recursiveSteps
     }
 
     public static List<Edge> ceBranch(Graph graph, int k) {
@@ -75,19 +75,19 @@ public class Main {
             return new ArrayList<>();
         }
 
-        //delete edge uv
         P3 p3 = getBiggestWeightP3(p3List);
 
+        //delete edge uv
         int oldEdgeWeight = graph.editEdge(p3.getU(), p3.getV());
-        //todo mark as forbidden
+        //mark as forbidden
         Edge uvEdge = new Edge(p3.getU(), p3.getV());
         forbiddenEdges.add(uvEdge);
         edgesToEdit = ceBranch(graph, k - oldEdgeWeight);
+        graph.editEdge(p3.getU(), p3.getV());
         if (edgesToEdit != null) {
             edgesToEdit.add(new Edge(p3.getU(), p3.getV()));
             return edgesToEdit;
         }
-        graph.editEdge(p3.getU(), p3.getV());
         forbiddenEdges.remove(uvEdge);
 
         //merge u and v
@@ -108,10 +108,9 @@ public class Main {
         for (WeightedNeighbor uw : u.getNeighbors().values()) {
             Vertex w = uw.getVertex();
             if (!w.equals(v)) {
-                WeightedNeighbor wv = Graph.getWeightedNeighbor(w, v);
-                WeightedNeighbor wu = Graph.getWeightedNeighbor(w, u);
+                WeightedNeighbor vw = Graph.getWeightedNeighbor(v,w);
 
-                int newWeight = wu.getWeight() + wv.getWeight();
+                int newWeight = uw.getWeight() + vw.getWeight();
                 Edge uwEdge = new Edge(u, w);
                 Edge vwEdge = new Edge(v, w);
                 if (forbiddenEdges.stream().anyMatch(edge -> edge.equals(uwEdge))) {
@@ -119,23 +118,20 @@ public class Main {
                     if (newWeight > 0) {
                         newWeight *= -1;
                     }
-                    if (wv.isEdgeExists()) {
-                        //TODO maybe editEdge?
-                        costs += wv.getWeight();
+                    if (vw.isEdgeExists()) {
+                        costs += vw.getWeight();
                     }
                 } else if (forbiddenEdges.stream().anyMatch(edge -> edge.equals(vwEdge))) {
                     forbiddenEdges.add(new Edge(w, mergedVertex));
                     if (newWeight > 0) {
                         newWeight *= -1;
                     }
-                    if (wv.isEdgeExists()) {
-                        //TODO maybe editEdge?
-                        costs += wu.getWeight();
+                    if (uw.isEdgeExists()) {
+                        costs += uw.getWeight();
                     }
                 } else {
-                    if (wu.isEdgeExists() != wv.isEdgeExists()) {
-                        //TODO maybe editEdge?
-                        costs += Math.min(Math.abs(wu.getWeight()), Math.abs(wv.getWeight()));
+                    if (uw.isEdgeExists() != vw.isEdgeExists()) {
+                        costs += Math.min(Math.abs(uw.getWeight()), Math.abs(vw.getWeight()));
                     }
                 }
 
@@ -171,8 +167,9 @@ public class Main {
             Vertex w = uw.getVertex();
             if (!w.equals(v)) {
                 Edge mwEdge = new Edge(m, w);
-                WeightedNeighbor weightedNeighbor = Graph.getWeightedNeighbor(m, w);
-                if (uw.isEdgeExists() != (weightedNeighbor.isEdgeExists() != edgesToEdit.stream().anyMatch(edge -> edge.equals(mwEdge)))) {
+                WeightedNeighbor mw = Graph.getWeightedNeighbor(m, w);
+                boolean mwToEdit = edgesToEdit.stream().anyMatch(edge -> edge.equals(mwEdge));
+                if (uw.isEdgeExists() != (mw.isEdgeExists() != mwToEdit)) {
                     edgesToEdit.add(new Edge(u, w));
                 }
             }
@@ -181,7 +178,9 @@ public class Main {
             Vertex w = vw.getVertex();
             if (!w.equals(u)) {
                 Edge mwEdge = new Edge(m, w);
-                if (vw.isEdgeExists() != (Graph.getWeightedNeighbor(m, w).isEdgeExists() != edgesToEdit.stream().anyMatch(edge -> edge.equals(mwEdge)))) {
+                WeightedNeighbor mw = Graph.getWeightedNeighbor(m, w);
+                boolean mwToEdit = edgesToEdit.stream().anyMatch(edge -> edge.equals(mwEdge));
+                if (vw.isEdgeExists() != (mw.isEdgeExists() != mwToEdit)) {
                     edgesToEdit.add(new Edge(v, w));
                 }
             }
@@ -207,6 +206,7 @@ public class Main {
         graph.getVertices().remove(m);
         graph.getVertices().add(u);
         graph.getVertices().add(v);
+        forbiddenEdges = forbiddenEdges.stream().filter(edge -> !edge.getA().equals(m) && !edge.getB().equals(m)).collect(Collectors.toSet());
     }
 
     public static List<Edge> ce(Graph graph) {
