@@ -14,8 +14,12 @@ public class P3 {
     }
 
     public int getTotalAbsoluteWeight() {
-        return Graph.getWeightedNeighbor(u, v).getWeight() + Graph.getWeightedNeighbor(v, w).getWeight()
+        return Graph.getWeightedNeighbor(u, v).getWeight() + Graph.getWeightedNeighbor(u, v).getWeight()
                 - Graph.getWeightedNeighbor(u, w).getWeight();
+    }
+
+    public int getMinAbsoluteWeight() {
+        return Math.min(Math.min(Graph.getWeightedNeighbor(u, v).getWeight(), Graph.getWeightedNeighbor(u, v).getWeight()), -Graph.getWeightedNeighbor(u, w).getWeight());
     }
 
     public Vertex getU() {

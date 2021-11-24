@@ -27,6 +27,7 @@ public class MinCostEdgeDisjointP3LowerBound {
     }
 
     private List<P3> getEdgeDisjointP3List(List<P3> list) {
+        list.sort((a, b) -> b.getMinAbsoluteWeight() - a.getMinAbsoluteWeight());
         List<P3> edgeDisjointP3List = new ArrayList<>();
         Set<Vertex> verticesInEdgeDisjointP3List = new HashSet<>();
         for (P3 p3 : list) {

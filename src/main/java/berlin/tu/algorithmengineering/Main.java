@@ -197,7 +197,7 @@ public class Main {
     }
 
     public static List<Edge> ce(Graph graph) {
-        for (int k = 7; ; k++) {
+        for (int k = 0; ; k++) {
             List<Edge> edgesToEdit = ceBranch(graph, k);
 
             if (edgesToEdit != null) {
