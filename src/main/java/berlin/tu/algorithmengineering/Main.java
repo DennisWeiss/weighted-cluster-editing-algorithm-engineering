@@ -51,8 +51,6 @@ public class Main {
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
                 if (graph.getEdgeWeights()[i][j] > k) {
-//                    System.out.println("Merging " + (i + 1) + " " + (j + 1) + " - k=" + k);
-//                    Graph graphCopy = graph.copy();
                     MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j), k);
                     resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
 
@@ -60,61 +58,26 @@ public class Main {
                         resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
                     }
                     graph.revertMergeVertices(mergeVerticesInfo);
-//                    graph = graphCopy;
+
                     return resultEdgeExists;
                 }
             }
         }
 
-        List<P3> p3List = graph.findAllP3();
-//        P3 p3 = graph.findP3();
-        if (p3List.isEmpty()) {
+        P3 p3 = graph.findBiggestWeightP3();
+
+        if (p3 == null) {
             return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
         }
 
-        P3 p3 = getBiggestWeightP3(graph, p3List);
-//        P3 p3 = p3List.get(0);
-
-////        System.out.println("Flipping " + (p3.getU() + 1) + " " + (p3.getV() + 1) + " - k=" + k);
-//        graph.editEdge(p3.getU(), p3.getV());
-//        resultEdgeExists = ceBranch(graph, k + graph.getEdgeWeights()[p3.getU()][p3.getV()]);
-//        graph.editEdge(p3.getU(), p3.getV());
-//
-//        if (resultEdgeExists != null) {
-//            return resultEdgeExists;
-//        }
-//
-////        System.out.println("Flipping " + (p3.getU() + 1) + " " + (p3.getV() + 1) + " - k=" + k);
-//        graph.editEdge(p3.getV(), p3.getW());
-//        resultEdgeExists = ceBranch(graph, k + graph.getEdgeWeights()[p3.getV()][p3.getW()]);
-//        graph.editEdge(p3.getV(), p3.getW());
-//
-//        if (resultEdgeExists != null) {
-//            return resultEdgeExists;
-//        }
-//
-////        System.out.println("Flipping " + (p3.getU() + 1) + " " + (p3.getV() + 1) + " - k=" + k);
-//        graph.editEdge(p3.getU(), p3.getW());
-//        resultEdgeExists = ceBranch(graph, k - graph.getEdgeWeights()[p3.getU()][p3.getW()]);
-//        graph.editEdge(p3.getU(), p3.getW());
-//
-//        if (resultEdgeExists != null) {
-//            return resultEdgeExists;
-//        }
-
-
-//        System.out.println("Flipping " + (p3.getU() + 1) + " " + (p3.getV() + 1) + " - k=" + k);
         graph.editEdge(p3.getU(), p3.getV());
-//        graph.setToForbidden(p3.getU(), p3.getV());
         resultEdgeExists = ceBranch(graph, k + graph.getEdgeWeights()[p3.getU()][p3.getV()]);
         graph.editEdge(p3.getU(), p3.getV());
 
         if (resultEdgeExists != null) {
             return resultEdgeExists;
         }
-//        graph.setToNotForbidden(p3.getU(), p3.getV());
 
-//        System.out.println("Merging " + (p3.getU() + 1) + " " + (p3.getV() + 1) + " - k=" + k);
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV(), k);
         resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
         if (resultEdgeExists != null) {
@@ -177,24 +140,12 @@ public class Main {
     }
 
     public static boolean[][] ce(Graph graph) {
-        Graph graphCopy = graph.copy();
-
         for (int k = 0; ; k++) {
-//            System.out.println("k=" + k);
             boolean[][] resultEdgeExists = ceBranch(graph, k);
-            for (int i = 0; i < graphCopy.getNumberOfVertices(); i++) {
-                for (int j = 0; j < graphCopy.getNumberOfVertices(); j++) {
-                    if (i != j && graphCopy.getEdgeWeights()[i][j] != graph.getEdgeWeights()[i][j]) {
-                        System.out.printf("not equal at (%d, %d) with k=%d\n", i, j, k);
-                    }
-                }
-            }
             if (resultEdgeExists != null) {
-//                System.out.println("last k = " + k);
                 return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
             }
         }
-//        return null;
     }
 
     private static boolean[][] getEdgesToEditFromResultEdgeExists(boolean[][] edgeExists, boolean[][] resultEdgeExists) {

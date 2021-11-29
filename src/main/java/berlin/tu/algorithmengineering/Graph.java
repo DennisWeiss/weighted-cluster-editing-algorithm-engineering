@@ -185,6 +185,26 @@ public class Graph {
         return p3List;
     }
 
+    public P3 findBiggestWeightP3() {
+        int biggestTotalAbsoluteWeight = Integer.MIN_VALUE;
+        P3 biggestTotalAbsoluteWeightP3 = null;
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = i + 1; j < numberOfVertices; j++) {
+                for (int k = 0; k < numberOfVertices; k++) {
+                    if (i != k && j != k && edgeExists[i][j] && edgeExists[j][k] && !edgeExists[i][k]) {
+                        P3 p3 = new P3(i, j, k);
+                        int totalAbsoluteWeight = getTotalAbsoluteWeight(p3);
+                        if (totalAbsoluteWeight > biggestTotalAbsoluteWeight) {
+                            biggestTotalAbsoluteWeight = totalAbsoluteWeight;
+                            biggestTotalAbsoluteWeightP3 = p3;
+                        }
+                    }
+                }
+            }
+        }
+        return biggestTotalAbsoluteWeightP3;
+    }
+
     public int getNumberOfVertices() {
         return numberOfVertices;
     }
