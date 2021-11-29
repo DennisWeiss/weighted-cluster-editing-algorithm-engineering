@@ -152,6 +152,10 @@ public class Graph {
         return edgeWeights[p3.getU()][p3.getV()] + edgeWeights[p3.getV()][p3.getW()] - edgeWeights[p3.getU()][p3.getW()];
     }
 
+    public int getSmallestAbsoluteWeight(P3 p3) {
+        return Math.min(Math.min(edgeWeights[p3.getU()][p3.getV()], edgeWeights[p3.getV()][p3.getW()]), -edgeWeights[p3.getU()][p3.getW()]);
+    }
+
     public P3 findP3() {
         for (int i = 0; i < numberOfVertices; i++) {
             for (int j = i+1; j < numberOfVertices; j++) {
@@ -203,6 +207,23 @@ public class Graph {
             }
         }
         return biggestTotalAbsoluteWeightP3;
+    }
+
+    public int getLowerBound2(List<P3> p3List) {
+        List<P3> sortedP3List = new ArrayList<>(p3List);
+        sortedP3List.sort((a, b) -> getSmallestAbsoluteWeight(b) - getSmallestAbsoluteWeight(a));
+        boolean[][] isInEdgeDisjointP3List = new boolean[numberOfVertices][numberOfVertices];
+        int lowerBound = 0;
+        for (P3 p3 : sortedP3List) {
+            if (!isInEdgeDisjointP3List[p3.getU()][p3.getV()] && !isInEdgeDisjointP3List[p3.getV()][p3.getW()]) {
+                lowerBound += getSmallestAbsoluteWeight(p3);
+                isInEdgeDisjointP3List[p3.getU()][p3.getV()] = true;
+                isInEdgeDisjointP3List[p3.getV()][p3.getU()] = true;
+                isInEdgeDisjointP3List[p3.getV()][p3.getW()] = true;
+                isInEdgeDisjointP3List[p3.getW()][p3.getV()] = true;
+            }
+        }
+        return lowerBound;
     }
 
     public int getNumberOfVertices() {

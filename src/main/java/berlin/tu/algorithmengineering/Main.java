@@ -64,10 +64,17 @@ public class Main {
             }
         }
 
-        P3 p3 = graph.findBiggestWeightP3();
+        List<P3> p3List = graph.findAllP3();
+//        P3 p3 = graph.findBiggestWeightP3();
 
-        if (p3 == null) {
+        if (p3List.isEmpty()) {
             return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
+        }
+
+        P3 p3 = getBiggestWeightP3(graph, p3List);
+
+        if (graph.getLowerBound2(p3List) > k) {
+            return null;
         }
 
         graph.editEdge(p3.getU(), p3.getV());
