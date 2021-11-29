@@ -1,34 +1,27 @@
 package berlin.tu.algorithmengineering.model;
 
-import java.util.Objects;
-
 public class Edge {
-    private Vertex a;
-    private Vertex b;
+    private int a;
+    private int b;
 
-    public Edge(Vertex a, Vertex b) {
+    public Edge(int a, int b) {
         this.a = a;
         this.b = b;
     }
 
-    public Vertex getA() {
+    public int getA() {
         return a;
     }
 
-    public void setA(Vertex a) {
+    public void setA(int a) {
         this.a = a;
     }
 
-    public Vertex getB() {
+    public int getB() {
         return b;
     }
 
-    public void setB(Vertex b) {
+    public void setB(int b) {
         this.b = b;
-    }
-
-
-    public boolean equals(Edge e) {
-        return (a.equals(e.getA()) && b.equals(e.getB())) || (a.equals(e.getB()) && b.equals(e.getA()));
     }
 }

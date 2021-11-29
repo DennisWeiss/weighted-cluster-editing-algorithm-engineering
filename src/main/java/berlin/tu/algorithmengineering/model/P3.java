@@ -3,42 +3,37 @@ package berlin.tu.algorithmengineering.model;
 import berlin.tu.algorithmengineering.Graph;
 
 public class P3 {
-    private Vertex u;
-    private Vertex v;
-    private Vertex w;
+    private int u;
+    private int v;
+    private int w;
 
-    public P3(Vertex u, Vertex v, Vertex w) {
+    public P3(int u, int v, int w) {
         this.u = u;
         this.v = v;
         this.w = w;
     }
 
-    public int getTotalAbsoluteWeight() {
-        return Graph.getWeightedNeighbor(u, v).getWeight() + Graph.getWeightedNeighbor(v, w).getWeight()
-                - Graph.getWeightedNeighbor(u, w).getWeight();
-    }
-
-    public Vertex getU() {
+    public int getU() {
         return u;
     }
 
-    public void setU(Vertex u) {
+    public void setU(int u) {
         this.u = u;
     }
 
-    public Vertex getV() {
+    public int getV() {
         return v;
     }
 
-    public void setV(Vertex v) {
+    public void setV(int v) {
         this.v = v;
     }
 
-    public Vertex getW() {
+    public int getW() {
         return w;
     }
 
-    public void setW(Vertex w) {
+    public void setW(int w) {
         this.w = w;
     }
 }
