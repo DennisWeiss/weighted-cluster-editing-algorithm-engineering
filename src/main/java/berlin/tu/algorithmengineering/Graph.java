@@ -215,12 +215,14 @@ public class Graph {
         boolean[][] isInEdgeDisjointP3List = new boolean[numberOfVertices][numberOfVertices];
         int lowerBound = 0;
         for (P3 p3 : sortedP3List) {
-            if (!isInEdgeDisjointP3List[p3.getU()][p3.getV()] && !isInEdgeDisjointP3List[p3.getV()][p3.getW()]) {
+            if (!isInEdgeDisjointP3List[p3.getU()][p3.getV()] && !isInEdgeDisjointP3List[p3.getV()][p3.getW()] && !isInEdgeDisjointP3List[p3.getU()][p3.getW()]) {
                 lowerBound += getSmallestAbsoluteWeight(p3);
                 isInEdgeDisjointP3List[p3.getU()][p3.getV()] = true;
                 isInEdgeDisjointP3List[p3.getV()][p3.getU()] = true;
                 isInEdgeDisjointP3List[p3.getV()][p3.getW()] = true;
                 isInEdgeDisjointP3List[p3.getW()][p3.getV()] = true;
+                isInEdgeDisjointP3List[p3.getU()][p3.getW()] = true;
+                isInEdgeDisjointP3List[p3.getW()][p3.getU()] = true;
             }
         }
         return lowerBound;

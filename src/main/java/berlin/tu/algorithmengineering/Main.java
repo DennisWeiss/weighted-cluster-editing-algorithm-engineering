@@ -73,9 +73,9 @@ public class Main {
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
-        if (graph.getLowerBound2(p3List) > k) {
-            return null;
-        }
+//        if (graph.getLowerBound2(p3List) > k) {
+//            return null;
+//        }
 
         graph.editEdge(p3.getU(), p3.getV());
         resultEdgeExists = ceBranch(graph, k + graph.getEdgeWeights()[p3.getU()][p3.getV()]);
@@ -150,6 +150,7 @@ public class Main {
         for (int k = 0; ; k++) {
             boolean[][] resultEdgeExists = ceBranch(graph, k);
             if (resultEdgeExists != null) {
+//                System.out.printf("last k = %d\n", k);
                 return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
             }
         }
