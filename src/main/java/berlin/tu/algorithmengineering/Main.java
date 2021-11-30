@@ -9,6 +9,10 @@ import java.util.Scanner;
 
 public class Main {
 
+    public static boolean DEBUG = false;
+
+    public static int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+
     private static int recursiveSteps = 0;
 
     public static void main(String[] args) {
@@ -27,6 +31,20 @@ public class Main {
         }
 
         boolean[][] edgesToEdit = ce(graph);
+
+        if (DEBUG) {
+            int cost = 0;
+
+            for (int i = 0; i < numberOfVertices; i++) {
+                for (int j = i+1; j < numberOfVertices; j++) {
+                    if (edgesToEdit[i][j]) {
+                        cost += Math.abs(graph.getEdgeWeights()[i][j]);
+                    }
+                }
+            }
+
+            System.out.printf("cost = %d\n", cost);
+        }
 
         for (int i = 0; i < numberOfVertices; i++) {
             for (int j = i+1; j < numberOfVertices; j++) {
@@ -73,13 +91,18 @@ public class Main {
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
-//        if (graph.getLowerBound2(p3List) > k) {
-//            return null;
-//        }
+        if (graph.getLowerBound2(p3List) > k) {
+            return null;
+        }
 
-        graph.editEdge(p3.getU(), p3.getV());
-        resultEdgeExists = ceBranch(graph, k + graph.getEdgeWeights()[p3.getU()][p3.getV()]);
-        graph.editEdge(p3.getU(), p3.getV());
+        graph.flipEdge(p3.getU(), p3.getV());
+        int cost = graph.getEdgeWeights()[p3.getU()][p3.getV()];
+        graph.getEdgeWeights()[p3.getU()][p3.getV()] = FORBIDDEN_VALUE;
+        graph.getEdgeWeights()[p3.getV()][p3.getU()] = FORBIDDEN_VALUE;
+        resultEdgeExists = ceBranch(graph, k + cost);
+        graph.flipEdge(p3.getU(), p3.getV());
+        graph.getEdgeWeights()[p3.getU()][p3.getV()] = -cost;
+        graph.getEdgeWeights()[p3.getV()][p3.getU()] = -cost;
 
         if (resultEdgeExists != null) {
             return resultEdgeExists;
@@ -147,10 +170,24 @@ public class Main {
     }
 
     public static boolean[][] ce(Graph graph) {
+        Graph graphCopy = graph.copy();
         for (int k = 0; ; k++) {
             boolean[][] resultEdgeExists = ceBranch(graph, k);
+            if (DEBUG) {
+                for (int i = 0; i < graphCopy.getNumberOfVertices(); i++) {
+                    for (int j = 0; j < graphCopy.getNumberOfVertices(); j++) {
+                        if (i != j && graph.getEdgeWeights()[i][j] != graphCopy.getEdgeWeights()[i][j]) {
+                            System.out.printf("weights not equal at [%d, %d] with k = %d\n", i, j, k);
+                        }
+                        if (i != j && graph.getEdgeExists()[i][j] != graphCopy.getEdgeExists()[i][j]) {
+                            System.out.printf("edgeExists not equal at [%d, %d] with k = %d\n", i, j, k);
+                        }
+                    }
+                }
+            }
+
             if (resultEdgeExists != null) {
-//                System.out.printf("last k = %d\n", k);
+                if (DEBUG) System.out.printf("last k = %d\n", k);
                 return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
             }
         }
