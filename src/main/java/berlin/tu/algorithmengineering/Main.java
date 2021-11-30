@@ -9,9 +9,9 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static boolean DEBUG = false;
+    public static final boolean DEBUG = false;
 
-    public static int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+    public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
 
     private static int recursiveSteps = 0;
 
@@ -30,7 +30,7 @@ public class Main {
             }
         }
 
-        boolean[][] edgesToEdit = ce(graph);
+        boolean[][] edgesToEdit = ceBinarySearchInitial(graph);
 
         if (DEBUG) {
             int cost = 0;
@@ -170,7 +170,10 @@ public class Main {
     }
 
     public static boolean[][] ce(Graph graph) {
-        Graph graphCopy = graph.copy();
+        Graph graphCopy = null;
+        if (DEBUG) {
+            graphCopy = graph.copy();
+        }
         for (int k = 0; ; k++) {
             boolean[][] resultEdgeExists = ceBranch(graph, k);
             if (DEBUG) {
@@ -191,6 +194,41 @@ public class Main {
                 return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
             }
         }
+    }
+
+    public static boolean[][] ceBinarySearchInitial(Graph graph) {
+        final double FACTOR = 1.2;
+
+        boolean[][] resultEdgeExists = ceBranch(graph, 0);
+        if (resultEdgeExists == null) {
+            int lo = 1;
+            int hi = 1;
+            for (int k = 1; ; k = (int) Math.ceil(FACTOR * k)) {
+                hi = k;
+                resultEdgeExists = ceBranch(graph, k);
+                if (resultEdgeExists != null) {
+                    resultEdgeExists = ceBinarySearch(graph, lo, hi);
+                    break;
+                }
+                lo = k;
+            }
+        }
+        return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
+    }
+
+    private static boolean[][] ceBinarySearch(Graph graph, int lo, int hi) {
+        if (lo == hi) {
+            return ceBranch(graph, lo);
+        }
+        int k = (lo + hi) / 2;
+        boolean[][] resultEdgeExists = ceBranch(graph, k);
+        if (resultEdgeExists != null) {
+            if (lo == k) {
+                return resultEdgeExists;
+            }
+            return ceBinarySearch(graph, lo, k);
+        }
+        return ceBinarySearch(graph, k + 1, hi);
     }
 
     private static boolean[][] getEdgesToEditFromResultEdgeExists(boolean[][] edgeExists, boolean[][] resultEdgeExists) {
