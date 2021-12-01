@@ -84,6 +84,24 @@ public class Main {
             }
         }
 
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+                if (graph.getEdgeWeights()[i][j] < 0 && graph.getEdgeWeights()[i][j] > FORBIDDEN_VALUE
+                        && -graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i]) {
+                    int originalWeight = graph.getEdgeWeights()[i][j];
+                    graph.getEdgeWeights()[i][j] = FORBIDDEN_VALUE;
+                    graph.getEdgeWeights()[j][i] = FORBIDDEN_VALUE;
+
+                    resultEdgeExists = ceBranch(graph, k);
+
+                    graph.getEdgeWeights()[i][j] = originalWeight;
+                    graph.getEdgeWeights()[j][i] = originalWeight;
+
+                    return resultEdgeExists;
+                }
+            }
+        }
+
         List<P3> p3List = graph.findAllP3();
 //        P3 p3 = graph.findBiggestWeightP3();
 
