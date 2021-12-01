@@ -60,6 +60,10 @@ public class Main {
     }
 
     public static boolean[][] ceBranch(Graph graph, int k) {
+        return ceBranch(graph, k, 0, 0);
+    }
+
+    private static boolean[][] ceBranch(Graph graph, int k, int startIHeavyNonEdge, int startJHeavyNonEdge) {
         if (k < 0) {
             return null;
         }
@@ -84,15 +88,15 @@ public class Main {
             }
         }
 
-        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+        for (int i = startIHeavyNonEdge; i < graph.getNumberOfVertices(); i++) {
+            for (int j = startJHeavyNonEdge; j < graph.getNumberOfVertices(); j++) {
                 if (graph.getEdgeWeights()[i][j] < 0 && graph.getEdgeWeights()[i][j] > FORBIDDEN_VALUE
                         && -graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i]) {
                     int originalWeight = graph.getEdgeWeights()[i][j];
                     graph.getEdgeWeights()[i][j] = FORBIDDEN_VALUE;
                     graph.getEdgeWeights()[j][i] = FORBIDDEN_VALUE;
 
-                    resultEdgeExists = ceBranch(graph, k);
+                    resultEdgeExists = ceBranch(graph, k, i, j);
 
                     graph.getEdgeWeights()[i][j] = originalWeight;
                     graph.getEdgeWeights()[j][i] = originalWeight;
