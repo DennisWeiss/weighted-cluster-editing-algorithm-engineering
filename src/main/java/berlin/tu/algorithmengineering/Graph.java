@@ -12,11 +12,13 @@ public class Graph {
     private int numberOfVertices;
     private int[][] edgeWeights;
     private boolean[][] edgeExists;
+    private int[] neighborhoodWeights;
 
     public Graph(int numberOfVertices) {
         this.numberOfVertices = numberOfVertices;
         this.edgeWeights = new int[numberOfVertices][numberOfVertices];
         this.edgeExists = new boolean[numberOfVertices][numberOfVertices];
+        this.neighborhoodWeights = new int[numberOfVertices];
     }
 
     public void setEdge(int vertex1, int vertex2, int weight) {
@@ -24,6 +26,23 @@ public class Graph {
         edgeWeights[vertex2][vertex1] = weight;
         edgeExists[vertex1][vertex2] = weight > 0;
         edgeExists[vertex2][vertex1] = weight > 0;
+    }
+
+    public int[] computeNeighborhoodWeights() {
+        for (int i = 0; i < numberOfVertices; i++) {
+            neighborhoodWeights[i] = getNeighborhoodWeight(i);
+        }
+        return neighborhoodWeights;
+    }
+
+    private int getNeighborhoodWeight(int vertex) {
+        int neighborhoodWeight = 0;
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (i != vertex && edgeExists[vertex][i]) {
+                neighborhoodWeight += edgeWeights[vertex][i];
+            }
+        }
+        return neighborhoodWeight;
     }
 
     public Graph copy() {
@@ -37,12 +56,13 @@ public class Graph {
         return copy;
     }
 
-    public int flipEdge(int i, int j) {
+    public void flipEdge(int i, int j) {
         edgeWeights[i][j] *= -1;
         edgeWeights[j][i] *= -1;
         edgeExists[i][j] = !edgeExists[i][j];
         edgeExists[j][i] = !edgeExists[j][i];
-        return -edgeWeights[i][j];
+        neighborhoodWeights[i] += edgeWeights[i][j];
+        neighborhoodWeights[j] += edgeWeights[i][j];
     }
 
     public MergeVerticesInfo mergeVertices(int a, int b, int k) {
@@ -77,6 +97,27 @@ public class Graph {
             edgeExists[b][i] = edgeExists[numberOfVertices - 1][i];
         }
 
+        for (int i = 0; i < numberOfVertices - 1; i++) {
+            if (i == a) {
+                int neighborHoodWeight = 0;
+                for (int j = 0; j < numberOfVertices - 1; j++) {
+                    if (j != a && edgeExists[a][j]) {
+                        neighborHoodWeight += edgeWeights[a][j];
+                    }
+                }
+                neighborhoodWeights[i] =  neighborHoodWeight;
+            } else if (i == b) {
+                neighborhoodWeights[i] = neighborhoodWeights[numberOfVertices - 1]
+                        - Math.max(mergeVerticesInfo.getEdgeWeightsOfFirstVertex()[numberOfVertices - 1], 0)
+                        - Math.max(mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[numberOfVertices - 1], 0)
+                        + Math.max(edgeWeights[a][i], 0);
+            } else {
+                neighborhoodWeights[i] += -Math.max(mergeVerticesInfo.getEdgeWeightsOfFirstVertex()[i], 0)
+                        - Math.max(mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[i], 0)
+                        + Math.max(edgeWeights[a][i], 0);
+            }
+        }
+
         numberOfVertices--;
 
         return mergeVerticesInfo;
@@ -84,6 +125,31 @@ public class Graph {
 
     public void revertMergeVertices(MergeVerticesInfo mergeVerticesInfo) {
         numberOfVertices++;
+
+        for (int i = 0; i < numberOfVertices - 1; i++) {
+            if (i == mergeVerticesInfo.getFirstVertex()) {
+                int neighborhoodWeight = 0;
+                for (int j = 0; j < numberOfVertices; j++) {
+                    if (j != mergeVerticesInfo.getFirstVertex() && mergeVerticesInfo.getEdgeExistsOfFirstVertex()[j]) {
+                        neighborhoodWeight += mergeVerticesInfo.getEdgeWeightsOfFirstVertex()[j];
+                    }
+                }
+                neighborhoodWeights[i] = neighborhoodWeight;
+            } else if (i == mergeVerticesInfo.getSecondVertex()) {
+                int neighborhoodWeight = 0;
+                for (int j = 0; j < numberOfVertices; j++) {
+                    if (j != mergeVerticesInfo.getSecondVertex() && mergeVerticesInfo.getEdgeExistsOfSecondVertex()[j]) {
+                        neighborhoodWeight += mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[j];
+                    }
+                }
+                neighborhoodWeights[i] = neighborhoodWeight;
+            } else {
+                neighborhoodWeights[i] += -Math.max(edgeWeights[mergeVerticesInfo.getFirstVertex()][i], 0)
+                + Math.max(mergeVerticesInfo.getEdgeWeightsOfFirstVertex()[i], 0)
+                + Math.max(mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[i], 0);
+            }
+        }
+
         for (int i = 0; i < numberOfVertices; i++) {
             edgeWeights[numberOfVertices - 1][i] = edgeWeights[mergeVerticesInfo.getSecondVertex()][i];
             edgeExists[numberOfVertices - 1][i] = edgeExists[mergeVerticesInfo.getSecondVertex()][i];
@@ -183,6 +249,15 @@ public class Graph {
         return lowerBound;
     }
 
+    public boolean[][] computeEdgeExists() {
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = 0; j < numberOfVertices; j++) {
+                edgeExists[i][j] = edgeWeights[i][j] > 0;
+            }
+        }
+        return edgeExists;
+    }
+
     public int getNumberOfVertices() {
         return numberOfVertices;
     }
@@ -207,4 +282,11 @@ public class Graph {
         this.edgeExists = edgeExists;
     }
 
+    public int[] getNeighborhoodWeights() {
+        return neighborhoodWeights;
+    }
+
+    public void setNeighborhoodWeights(int[] neighborhoodWeights) {
+        this.neighborhoodWeights = neighborhoodWeights;
+    }
 }

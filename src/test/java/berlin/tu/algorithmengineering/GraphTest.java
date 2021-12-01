@@ -18,6 +18,8 @@ class GraphTest {
                 {1, 2, -2, 9, 0}
         };
         graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+
         int k = 3;
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(3, 4, k);
@@ -51,6 +53,8 @@ class GraphTest {
                 {1, 2, -2, 9, 0}
         };
         graph.setEdgeWeights(deepCopy(edges));
+        graph.computeEdgeExists();
+
         int k = 3;
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3, k);
@@ -84,6 +88,8 @@ class GraphTest {
                 {1, 2, -2, 9, 0}
         };
         graph.setEdgeWeights(deepCopy(edges));
+        graph.computeEdgeExists();
+
         int k = 3;
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3, k);
@@ -109,6 +115,8 @@ class GraphTest {
                 {1, 2, -2, 9, 0}
         };
         graph.setEdgeWeights(deepCopy(edges));
+        graph.computeEdgeExists();
+
         int k = 3;
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3, k);
@@ -142,6 +150,8 @@ class GraphTest {
                 {1, 2, -2, 9, 0}
         };
         graph.setEdgeWeights(deepCopy(edges));
+        graph.computeEdgeExists();
+
         int k = 3;
 
         MergeVerticesInfo mergeVerticesInfo1 = graph.mergeVertices(4, 3, k);
@@ -158,6 +168,81 @@ class GraphTest {
         }
     }
 
+    @Test
+    void mergeVerticesTestNeighborhoodWeights1() {
+        Graph graph = new Graph(5);
+        int[][] edges = {
+                {0, -1, -1, -1, 1},
+                {-1, 0, 2, 2, 2},
+                {-1, 2, 0, 2, -2},
+                {-1, 2, 2, 0, 9},
+                {1, 2, -2, 9, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+        graph.computeNeighborhoodWeights();
+
+        int k = 3;
+
+        graph.mergeVertices(3, 4, k);
+
+        int[] expected = {0, 6, 2, 4};
+
+        for (int i = 0; i < 4; i++) {
+            assertEquals(expected[i], graph.getNeighborhoodWeights()[i]);
+        }
+    }
+
+    @Test
+    void mergeVerticesTestNeighborhoodWeights2() {
+        Graph graph = new Graph(5);
+        int[][] edges = {
+                {0, -1, -1, -1, 1},
+                {-1, 0, 2, 2, 2},
+                {-1, 2, 0, 2, -2},
+                {-1, 2, 2, 0, 9},
+                {1, 2, -2, 9, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+        graph.computeNeighborhoodWeights();
+
+        int k = 3;
+
+        graph.mergeVertices(1, 3, k);
+
+        int[] expected = {1, 15, 4, 12};
+
+        for (int i = 0; i < 4; i++) {
+            assertEquals(expected[i], graph.getNeighborhoodWeights()[i]);
+        }
+    }
+
+    @Test
+    void testIfNeighborhoodWeightsIsUnaltered() {
+        Graph graph = new Graph(5);
+        int[][] edges = {
+                {0, -1, -1, -1, 1},
+                {-1, 0, 2, 2, 2},
+                {-1, 2, 0, 2, -2},
+                {-1, 2, 2, 0, 9},
+                {1, 2, -2, 9, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+        graph.computeNeighborhoodWeights();
+
+        int k = 3;
+
+        graph.revertMergeVertices(graph.mergeVertices(1, 3, k));
+
+        int[] expected = {1, 6, 4, 13, 12};
+
+        for (int i = 0; i < 5; i++) {
+            assertEquals(expected[i], graph.getNeighborhoodWeights()[i]);
+        }
+    }
+
     private int[][] deepCopy(int[][] matrix) {
         if (matrix.length == 0) {
             return new int[0][0];
@@ -170,4 +255,6 @@ class GraphTest {
         }
         return copy;
     }
+
+
 }
