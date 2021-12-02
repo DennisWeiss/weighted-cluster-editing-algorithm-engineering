@@ -33,6 +33,7 @@ public class Main {
         }
 
         graph.computeNeighborhoodWeights();
+        graph.computeAbsoluteNeighborhoodWeights();
 
         boolean[][] edgesToEdit = ceBinarySearchInitial(graph);
 
@@ -68,13 +69,17 @@ public class Main {
 
         recursiveSteps++;
 
-        Stack<OriginalWeightsInfo> originalWeights = applyHeavyNonEdgeReduction(graph);
+        Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = applyHeavyNonEdgeReduction(graph);
 
         boolean[][] resultEdgeExists;
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
-                if (graph.getEdgeWeights()[i][j] > k) {
+            for (int j = 0; j < graph.getNumberOfVertices(); j++) {
+                if (i != j && graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i]) {
+                    System.out.print("");
+                }
+                if (i != j && (graph.getEdgeWeights()[i][j] > k
+                        || graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i])) {
                     MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j), k);
                     resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
 
@@ -82,7 +87,7 @@ public class Main {
                         resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
                     }
                     graph.revertMergeVertices(mergeVerticesInfo);
-                    revertHeavyNonEdgeReduction(graph, originalWeights);
+                    revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
 
                     return resultEdgeExists;
                 }
@@ -93,14 +98,14 @@ public class Main {
         List<P3> p3List = graph.findAllP3();
 
         if (p3List.isEmpty()) {
-            revertHeavyNonEdgeReduction(graph, originalWeights);
+            revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
             return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
         }
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
         if (graph.getLowerBound2(p3List) > k) {
-            revertHeavyNonEdgeReduction(graph, originalWeights);
+            revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
             return null;
         }
 
@@ -114,7 +119,7 @@ public class Main {
         graph.getEdgeWeights()[p3.getV()][p3.getU()] = -cost;
 
         if (resultEdgeExists != null) {
-            revertHeavyNonEdgeReduction(graph, originalWeights);
+            revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
             return resultEdgeExists;
         }
 
@@ -124,17 +129,9 @@ public class Main {
             resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
         }
         graph.revertMergeVertices(mergeVerticesInfo);
-        revertHeavyNonEdgeReduction(graph, originalWeights);
+        revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
 
         return resultEdgeExists;
-    }
-
-    private static void revertHeavyNonEdgeReduction(Graph graph, Stack<OriginalWeightsInfo> originalWeights) {
-        while (!originalWeights.isEmpty()) {
-            OriginalWeightsInfo originalWeightsInfo = originalWeights.pop();
-            graph.getEdgeWeights()[originalWeightsInfo.getVertex1()][originalWeightsInfo.getVertex2()] = originalWeightsInfo.getOriginalWeight();
-            graph.getEdgeWeights()[originalWeightsInfo.getVertex2()][originalWeightsInfo.getVertex1()] = originalWeightsInfo.getOriginalWeight();
-        }
     }
 
     private static Stack<OriginalWeightsInfo> applyHeavyNonEdgeReduction(Graph graph) {
@@ -151,6 +148,14 @@ public class Main {
             }
         }
         return originalWeights;
+    }
+
+    private static void revertHeavyNonEdgeReduction(Graph graph, Stack<OriginalWeightsInfo> originalWeights) {
+        while (!originalWeights.isEmpty()) {
+            OriginalWeightsInfo originalWeightsInfo = originalWeights.pop();
+            graph.getEdgeWeights()[originalWeightsInfo.getVertex1()][originalWeightsInfo.getVertex2()] = originalWeightsInfo.getOriginalWeight();
+            graph.getEdgeWeights()[originalWeightsInfo.getVertex2()][originalWeightsInfo.getVertex1()] = originalWeightsInfo.getOriginalWeight();
+        }
     }
 
     private static P3 getBiggestWeightP3(Graph graph, List<P3> p3List) {
