@@ -2,10 +2,12 @@ package berlin.tu.algorithmengineering;
 
 
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
+import berlin.tu.algorithmengineering.model.OriginalWeightsInfo;
 import berlin.tu.algorithmengineering.model.P3;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class Main {
 
@@ -59,16 +61,31 @@ public class Main {
         System.out.printf("#recursive steps: %d\n", recursiveSteps);
     }
 
-    public static boolean[][] ceBranch(Graph graph, int k) {
-        return ceBranch(graph, k, 0, 0);
-    }
-
-    private static boolean[][] ceBranch(Graph graph, int k, int startIHeavyNonEdge, int startJHeavyNonEdge) {
+    private static boolean[][] ceBranch(Graph graph, int k) {
         if (k < 0) {
             return null;
         }
 
         recursiveSteps++;
+
+        Stack<OriginalWeightsInfo> originalWeights = new Stack<>();
+
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+                if (graph.getEdgeWeights()[i][j] < 0 && graph.getEdgeWeights()[i][j] > FORBIDDEN_VALUE
+                        && -graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i]) {
+                    originalWeights.push(new OriginalWeightsInfo(i, j, graph.getEdgeWeights()[i][j]));
+                    graph.getEdgeWeights()[i][j] = FORBIDDEN_VALUE;
+                    graph.getEdgeWeights()[j][i] = FORBIDDEN_VALUE;
+                }
+            }
+        }
+
+        while (!originalWeights.isEmpty()) {
+            OriginalWeightsInfo originalWeightsInfo = originalWeights.pop();
+            graph.getEdgeWeights()[originalWeightsInfo.getVertex1()][originalWeightsInfo.getVertex2()] = originalWeightsInfo.getOriginalWeight();
+            graph.getEdgeWeights()[originalWeightsInfo.getVertex2()][originalWeightsInfo.getVertex1()] = originalWeightsInfo.getOriginalWeight();
+        }
 
         boolean[][] resultEdgeExists;
 
@@ -88,26 +105,8 @@ public class Main {
             }
         }
 
-        for (int i = startIHeavyNonEdge; i < graph.getNumberOfVertices(); i++) {
-            for (int j = startJHeavyNonEdge; j < graph.getNumberOfVertices(); j++) {
-                if (graph.getEdgeWeights()[i][j] < 0 && graph.getEdgeWeights()[i][j] > FORBIDDEN_VALUE
-                        && -graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i]) {
-                    int originalWeight = graph.getEdgeWeights()[i][j];
-                    graph.getEdgeWeights()[i][j] = FORBIDDEN_VALUE;
-                    graph.getEdgeWeights()[j][i] = FORBIDDEN_VALUE;
-
-                    resultEdgeExists = ceBranch(graph, k, i, j);
-
-                    graph.getEdgeWeights()[i][j] = originalWeight;
-                    graph.getEdgeWeights()[j][i] = originalWeight;
-
-                    return resultEdgeExists;
-                }
-            }
-        }
 
         List<P3> p3List = graph.findAllP3();
-//        P3 p3 = graph.findBiggestWeightP3();
 
         if (p3List.isEmpty()) {
             return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
