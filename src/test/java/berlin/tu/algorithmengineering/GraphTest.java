@@ -243,6 +243,81 @@ class GraphTest {
         }
     }
 
+    @Test
+    void mergeVerticesTestAbsoluteNeighborhoodWeights1() {
+        Graph graph = new Graph(5);
+        int[][] edges = {
+                {0, -1, -1, -1, 1},
+                {-1, 0, 2, 2, 2},
+                {-1, 2, 0, 2, -2},
+                {-1, 2, 2, 0, 9},
+                {1, 2, -2, 9, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+        graph.computeAbsoluteNeighborhoodWeights();
+
+        int k = 3;
+
+        graph.mergeVertices(3, 4, k);
+
+        int[] expected = {2, 7, 3, 4};
+
+        for (int i = 0; i < 4; i++) {
+            assertEquals(expected[i], graph.getAbsoluteNeighborhoodWeights()[i]);
+        }
+    }
+
+    @Test
+    void mergeVerticesTestAbsoluteNeighborhoodWeights2() {
+        Graph graph = new Graph(5);
+        int[][] edges = {
+                {0, -1, -1, -1, 1},
+                {-1, 0, 2, 2, 2},
+                {-1, 2, 0, 2, -2},
+                {-1, 2, 2, 0, 9},
+                {1, 2, -2, 9, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+        graph.computeAbsoluteNeighborhoodWeights();
+
+        int k = 3;
+
+        graph.mergeVertices(1, 3, k);
+
+        int[] expected = {4, 17, 7, 14};
+
+        for (int i = 0; i < 4; i++) {
+            assertEquals(expected[i], graph.getAbsoluteNeighborhoodWeights()[i]);
+        }
+    }
+
+    @Test
+    void testIfAbsoluteNeighborhoodWeightsIsUnaltered() {
+        Graph graph = new Graph(5);
+        int[][] edges = {
+                {0, -1, -1, -1, 1},
+                {-1, 0, 2, 2, 2},
+                {-1, 2, 0, 2, -2},
+                {-1, 2, 2, 0, 9},
+                {1, 2, -2, 9, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+        graph.computeAbsoluteNeighborhoodWeights();
+
+        int k = 3;
+
+        graph.revertMergeVertices(graph.mergeVertices(1, 3, k));
+
+        int[] expected = {4, 7, 7, 14, 14};
+
+        for (int i = 0; i < 5; i++) {
+            assertEquals(expected[i], graph.getAbsoluteNeighborhoodWeights()[i]);
+        }
+    }
+
     private int[][] deepCopy(int[][] matrix) {
         if (matrix.length == 0) {
             return new int[0][0];
