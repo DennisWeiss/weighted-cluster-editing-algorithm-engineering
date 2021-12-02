@@ -1,7 +1,5 @@
 package berlin.tu.algorithmengineering.model;
 
-import berlin.tu.algorithmengineering.Graph;
-
 public class P3 {
     private int u;
     private int v;

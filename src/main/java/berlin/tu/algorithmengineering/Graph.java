@@ -276,9 +276,9 @@ public class Graph {
     public List<P3> findAllP3() {
         List<P3> p3List = new ArrayList<>();
         for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i + 1; j < numberOfVertices; j++) {
-                for (int k = 0; k < numberOfVertices; k++) {
-                    if (i != k && j != k && edgeExists[i][j] && edgeExists[j][k] && !edgeExists[i][k]) {
+            for (int j = 0; j < numberOfVertices; j++) {
+                for (int k = i + 1; k < numberOfVertices; k++) {
+                    if (i != j && j != k && edgeExists[i][j] && edgeExists[j][k] && !edgeExists[i][k]) {
                         p3List.add(new P3(i, j, k));
                     }
                 }

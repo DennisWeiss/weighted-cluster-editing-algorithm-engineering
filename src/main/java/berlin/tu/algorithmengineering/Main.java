@@ -69,15 +69,24 @@ public class Main {
 
         recursiveSteps++;
 
+        List<P3> p3List = graph.findAllP3();
+
+        if (p3List.isEmpty()) {
+            return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
+        }
+
+        if (graph.getLowerBound2(p3List) > k) {
+            return null;
+        }
+
         Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = applyHeavyNonEdgeReduction(graph);
+
+        P3 p3 = getBiggestWeightP3(graph, p3List);
 
         boolean[][] resultEdgeExists;
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = 0; j < graph.getNumberOfVertices(); j++) {
-                if (i != j && graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i]) {
-                    System.out.print("");
-                }
                 if (i != j && (graph.getEdgeWeights()[i][j] > k
                         || graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i])) {
                     MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j), k);
@@ -95,40 +104,30 @@ public class Main {
         }
 
 
-        List<P3> p3List = graph.findAllP3();
-
-        if (p3List.isEmpty()) {
-            revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
-            return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
-        }
-
-        P3 p3 = getBiggestWeightP3(graph, p3List);
-
-        if (graph.getLowerBound2(p3List) > k) {
-            revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
-            return null;
-        }
-
-        graph.flipEdge(p3.getU(), p3.getV());
-        int cost = graph.getEdgeWeights()[p3.getU()][p3.getV()];
-        graph.getEdgeWeights()[p3.getU()][p3.getV()] = FORBIDDEN_VALUE;
-        graph.getEdgeWeights()[p3.getV()][p3.getU()] = FORBIDDEN_VALUE;
-        resultEdgeExists = ceBranch(graph, k + cost);
-        graph.flipEdge(p3.getU(), p3.getV());
-        graph.getEdgeWeights()[p3.getU()][p3.getV()] = -cost;
-        graph.getEdgeWeights()[p3.getV()][p3.getU()] = -cost;
-
-        if (resultEdgeExists != null) {
-            revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
-            return resultEdgeExists;
-        }
-
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV(), k);
         resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
         if (resultEdgeExists != null) {
             resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
         }
         graph.revertMergeVertices(mergeVerticesInfo);
+
+        if (resultEdgeExists != null) {
+            return resultEdgeExists;
+        }
+
+        graph.flipEdge(p3.getU(), p3.getV());
+        int cost = graph.getEdgeWeights()[p3.getU()][p3.getV()];
+        graph.getEdgeWeights()[p3.getU()][p3.getV()] = FORBIDDEN_VALUE;
+        graph.getEdgeWeights()[p3.getV()][p3.getU()] = FORBIDDEN_VALUE;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getU()] += -FORBIDDEN_VALUE + cost;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getV()] += -FORBIDDEN_VALUE + cost;
+        resultEdgeExists = ceBranch(graph, k + cost);
+        graph.getEdgeWeights()[p3.getU()][p3.getV()] = cost;
+        graph.getEdgeWeights()[p3.getV()][p3.getU()] = cost;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getU()] -= -FORBIDDEN_VALUE + cost;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getV()] -= -FORBIDDEN_VALUE + cost;
+        graph.flipEdge(p3.getU(), p3.getV());
+
         revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
 
         return resultEdgeExists;
@@ -258,12 +257,18 @@ public class Main {
 
     private static boolean[][] ceBinarySearch(Graph graph, int lo, int hi) {
         if (lo == hi) {
+            if (DEBUG) {
+                System.out.printf("last k = %d\n", lo);
+            }
             return ceBranch(graph, lo);
         }
         int k = (lo + hi) / 2;
         boolean[][] resultEdgeExists = ceBranch(graph, k);
         if (resultEdgeExists != null) {
             if (lo == k) {
+                if (DEBUG) {
+                    System.out.printf("last k = %d\n", k);
+                }
                 return resultEdgeExists;
             }
             return ceBinarySearch(graph, lo, k);
@@ -282,10 +287,7 @@ public class Main {
     }
 
     private static boolean[][] copy(boolean[][] mat, int size) {
-        if (mat.length == 0) {
-            return new boolean[0][0];
-        }
-        boolean[][] copy = new boolean[mat.length][mat[0].length];
+        boolean[][] copy = new boolean[mat.length][mat.length];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 copy[i][j] = mat[i][j];
