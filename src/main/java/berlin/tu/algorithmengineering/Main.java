@@ -62,8 +62,6 @@ public class Main {
             return null;
         }
 
-        recursiveSteps++;
-
         boolean[][] resultEdgeExists;
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
@@ -81,6 +79,8 @@ public class Main {
                 }
             }
         }
+
+        recursiveSteps++;
 
         List<P3> p3List = graph.findAllP3();
 //        P3 p3 = graph.findBiggestWeightP3();
