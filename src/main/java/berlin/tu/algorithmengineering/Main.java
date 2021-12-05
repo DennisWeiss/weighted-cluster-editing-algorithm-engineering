@@ -69,8 +69,6 @@ public class Main {
             return null;
         }
 
-        recursiveSteps++;
-
         List<P3> p3List = graph.findAllP3();
 
         if (p3List.isEmpty()) {
@@ -90,7 +88,9 @@ public class Main {
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = 0; j < graph.getNumberOfVertices(); j++) {
                 if (i != j && (graph.getEdgeWeights()[i][j] > k
-                        || graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i])) {
+                        || graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i]
+                        || 3 * graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i] + graph.getNeighborhoodWeights()[j]
+                )) {
                     MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j));
                     resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
 
