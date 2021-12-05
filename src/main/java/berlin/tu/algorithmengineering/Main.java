@@ -195,6 +195,7 @@ public class Main {
         boolean[][] ResultEdgeExistsCopy = copy(resultEdgeExists, resultEdgeExists.length);
         boolean[][] newResultEdgeExists = new boolean[resultEdgeExists.length][resultEdgeExists.length];
 
+        // Just for convenience
         if (graph.getNumberOfVertices() != mergeVerticesInfo.getSecondVertex()) {
             for (int i = 0; i < graph.getNumberOfVertices(); i++) {
                 ResultEdgeExistsCopy[graph.getNumberOfVertices()][i] = resultEdgeExists[mergeVerticesInfo.getSecondVertex()][i];
@@ -202,6 +203,7 @@ public class Main {
             }
         }
 
+        // Just copy value if neither i or j are merged vertex
         for (int i = 0; i < graph.getNumberOfVertices() + 1; i++) {
             for (int j = 0; j < graph.getNumberOfVertices() + 1; j++) {
                 if (i != j && i != mergeVerticesInfo.getFirstVertex() && i != mergeVerticesInfo.getSecondVertex()
@@ -211,6 +213,7 @@ public class Main {
             }
         }
 
+        // Setting resultEdge if a vertex is a vertex which has been merged from
         for (int i = 0; i < graph.getNumberOfVertices() + 1; i++) {
             if (i != mergeVerticesInfo.getFirstVertex() && i != mergeVerticesInfo.getSecondVertex()) {
                 boolean edgeExistsWithMergedVertex = ResultEdgeExistsCopy[mergeVerticesInfo.getFirstVertex()][i];
