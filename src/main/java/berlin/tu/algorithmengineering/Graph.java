@@ -5,6 +5,7 @@ import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
 import berlin.tu.algorithmengineering.model.P3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Graph {
@@ -87,6 +88,11 @@ public class Graph {
     }
 
     public MergeVerticesInfo mergeVertices(int a, int b) {
+        if (a > b) {
+            int temp = a;
+            a = b;
+            b = temp;
+        }
         MergeVerticesInfo mergeVerticesInfo = new MergeVerticesInfo(numberOfVertices, a, b);
 
         for (int i = 0; i < numberOfVertices; i++) {
@@ -264,10 +270,10 @@ public class Graph {
                 sizeOfClosedNeighborhood++;
 
                 for (int w=0; w<numberOfVertices; w++) {
-                    if( w != v && edgeWeights[v][w] == 0 ){
-                        return null;
-                    }
                     if (w == u || edgeExists[u][w]) { //w in closed neighborhood of u
+                        if( w != v && edgeWeights[v][w] == 0 ){
+                            return null;
+                        }
                         if (v != w && edgeWeights[v][w] < 0) {
                             costOfMakingClique += -edgeWeights[v][w];
                         }
@@ -286,9 +292,10 @@ public class Graph {
 
         // merge all in closed neighborhood
         MergeVerticesInfo[] mergedVerticesInfos = new MergeVerticesInfo[sizeOfClosedNeighborhood-1];
+        boolean[] edgeExistsOfU = Arrays.copyOf(edgeExists[u], numberOfVertices);
         int j = 0;
-        for (int i=numberOfVertices - 1; i > firstInNeighborhood && j >= 0; i--) {//numberOfVertices could get decreased, but only by 1
-            if (u == i || edgeExists[u][i]) {
+        for (int i=numberOfVertices - 1; i > firstInNeighborhood; i--) {//numberOfVertices could get decreased, but only by 1
+            if (u == i || edgeExistsOfU[i]) {
                 //System.out.printf("\tmerge 1st,i: %d %d   %d\n", firstInNeighborhood, i, j);
                 mergedVerticesInfos[j] = mergeVertices(firstInNeighborhood, i);
                 j++;

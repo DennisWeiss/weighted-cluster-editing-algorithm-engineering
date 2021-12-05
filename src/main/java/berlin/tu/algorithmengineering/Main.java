@@ -35,32 +35,7 @@ public class Main {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        //k independent data reductions here
-        //every other rule first
-        int dataReductionCost = 0;
-        MergeVerticesInfo[][] mergeVerticesInfos = new MergeVerticesInfo[numberOfVertices][];
-        for (int u=0; u<graph.getNumberOfVertices(); u++) {//currently we do not try to apply the rule to the N[merged vertex] again
-            mergeVerticesInfos[u] = graph.applyClosedNeighborhoodReductionRule(u);
-            if (mergeVerticesInfos[u] != null) {
-                if (DEBUG) {
-                    System.out.printf("large neighborhood data reduction applied for %d %s\n", u, mergeVerticesInfos[u]);
-                }
-                //for (int i=0; i<mergeVerticesInfos[u].length; i++) {
-                    //dataReductionCost += Math.abs(mergeVerticesInfos[u][i].getCost());
-                //}
-            }
-        }
-
         boolean[][] resultEdgeExists = ceBinarySearchInitial(graph);
-
-        for (int u=numberOfVertices-1; u >= 0; u--) {
-            if (mergeVerticesInfos[u] != null) {
-                for (int i=mergeVerticesInfos[u].length-1; i>=0; i--) {
-                    resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[u][i]);
-                    graph.revertMergeVertices(mergeVerticesInfos[u][i]);
-                }
-            }
-        }
 
         boolean[][] edgesToEdit = getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
@@ -130,12 +105,23 @@ public class Main {
             }
         }
 
-//        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-//            MergeVerticesInfo[] mergeVerticesInfo = graph.applyClosedNeighborhoodReductionRule(i);
-//            if (mergeVerticesInfo != null) {
-//                resultEdgeExists =  ceBranch(graph, )
-//            }
-//        }
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            MergeVerticesInfo[] mergeVerticesInfos = graph.applyClosedNeighborhoodReductionRule(i);
+            if (mergeVerticesInfos != null) {
+                resultEdgeExists = ceBranch(graph, k - MergeVerticesInfo.getTotalCost(mergeVerticesInfos));
+
+                for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
+                    if (resultEdgeExists != null) {
+                        resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[j]);
+                    }
+                    graph.revertMergeVertices(mergeVerticesInfos[j]);
+                }
+
+                revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
+
+                return resultEdgeExists;
+            }
+        }
 
         recursiveSteps++;
 
