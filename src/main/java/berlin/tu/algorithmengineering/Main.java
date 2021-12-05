@@ -35,7 +35,34 @@ public class Main {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        boolean[][] edgesToEdit = ceBinarySearchInitial(graph);
+        //k independent data reductions here
+        //every other rule first
+        int dataReductionCost = 0;
+        MergeVerticesInfo[][] mergeVerticesInfos = new MergeVerticesInfo[numberOfVertices][];
+        for (int u=0; u<graph.getNumberOfVertices(); u++) {//currently we do not try to apply the rule to the N[merged vertex] again
+            mergeVerticesInfos[u] = graph.applyClosedNeighborhoodReductionRule(u);
+            if (mergeVerticesInfos[u] != null) {
+                if (DEBUG) {
+                    System.out.printf("large neighborhood data reduction applied for %d %s\n", u, mergeVerticesInfos[u]);
+                }
+                //for (int i=0; i<mergeVerticesInfos[u].length; i++) {
+                    //dataReductionCost += Math.abs(mergeVerticesInfos[u][i].getCost());
+                //}
+            }
+        }
+
+        boolean[][] resultEdgeExists = ceBinarySearchInitial(graph);
+
+        for (int u=numberOfVertices-1; u >= 0; u--) {
+            if (mergeVerticesInfos[u] != null) {
+                for (int i=mergeVerticesInfos[u].length-1; i>=0; i--) {
+                    resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[u][i]);
+                    graph.revertMergeVertices(mergeVerticesInfos[u][i]);
+                }
+            }
+        }
+
+        boolean[][] edgesToEdit = getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
         if (DEBUG) {
             int cost = 0;
@@ -103,6 +130,10 @@ public class Main {
             }
         }
 
+        recursiveSteps++;
+
+        List<P3> p3List = graph.findAllP3();
+//        P3 p3 = graph.findBiggestWeightP3();
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV(), k);
         resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
@@ -252,7 +283,7 @@ public class Main {
                 lo = k;
             }
         }
-        return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
+        return resultEdgeExists;
     }
 
     private static boolean[][] ceBinarySearch(Graph graph, int lo, int hi) {
