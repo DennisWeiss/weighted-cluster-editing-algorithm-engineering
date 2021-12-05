@@ -116,8 +116,8 @@ public class Main {
             for (int j = 0; j < graph.getNumberOfVertices(); j++) {
                 if (i != j && (graph.getEdgeWeights()[i][j] > k
                         || graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i])) {
-                    MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j), k);
-                    resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
+                    MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j));
+                    resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
 
                     if (resultEdgeExists != null) {
                         resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
@@ -130,13 +130,17 @@ public class Main {
             }
         }
 
+//        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+//            MergeVerticesInfo[] mergeVerticesInfo = graph.applyClosedNeighborhoodReductionRule(i);
+//            if (mergeVerticesInfo != null) {
+//                resultEdgeExists =  ceBranch(graph, )
+//            }
+//        }
+
         recursiveSteps++;
 
-        List<P3> p3List = graph.findAllP3();
-//        P3 p3 = graph.findBiggestWeightP3();
-
-        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV(), k);
-        resultEdgeExists = ceBranch(graph, mergeVerticesInfo.getK());
+        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
+        resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
         if (resultEdgeExists != null) {
             resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
         }

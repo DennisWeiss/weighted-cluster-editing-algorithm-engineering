@@ -8,24 +8,19 @@ public class MergeVerticesInfo {
     private int[] edgeWeightsOfSecondVertex;
     private boolean[] edgeExistsOfFirstVertex;
     private boolean[] edgeExistsOfSecondVertex;
-    private boolean[] forbiddenOfFirstVertex;
-    private boolean[] forbiddenOfSecondVertex;
-    private int k;
+    private int cost = 0;
 
-    public MergeVerticesInfo(int numberOfVertices, int firstVertex, int secondVertex, int k) {
+    public MergeVerticesInfo(int numberOfVertices, int firstVertex, int secondVertex) {
         this.edgeWeightsOfFirstVertex = new int[numberOfVertices];
         this.edgeWeightsOfSecondVertex = new int[numberOfVertices];
         this.edgeExistsOfFirstVertex = new boolean[numberOfVertices];
         this.edgeExistsOfSecondVertex = new boolean[numberOfVertices];
-        this.forbiddenOfFirstVertex = new boolean[numberOfVertices];
-        this.forbiddenOfSecondVertex = new boolean[numberOfVertices];
         this.firstVertex = firstVertex;
         this.secondVertex = secondVertex;
-        this.k = k;
     }
 
-    public void reduceK(int diff) {
-        k -= diff;
+    public void increaseCost(int diff) {
+        cost += diff;
     }
 
     public int getFirstVertex() {
@@ -76,27 +71,11 @@ public class MergeVerticesInfo {
         this.edgeExistsOfSecondVertex = edgeExistsOfSecondVertex;
     }
 
-    public boolean[] getForbiddenOfFirstVertex() {
-        return forbiddenOfFirstVertex;
+    public int getCost() {
+        return cost;
     }
 
-    public void setForbiddenOfFirstVertex(boolean[] forbiddenOfFirstVertex) {
-        this.forbiddenOfFirstVertex = forbiddenOfFirstVertex;
-    }
-
-    public boolean[] getForbiddenOfSecondVertex() {
-        return forbiddenOfSecondVertex;
-    }
-
-    public void setForbiddenOfSecondVertex(boolean[] forbiddenOfSecondVertex) {
-        this.forbiddenOfSecondVertex = forbiddenOfSecondVertex;
-    }
-
-    public int getK() {
-        return k;
-    }
-
-    public void setK(int k) {
-        this.k = k;
+    public void setCost(int cost) {
+        this.cost = cost;
     }
 }

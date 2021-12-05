@@ -20,9 +20,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
 
-        int k = 3;
-
-        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(3, 4, k);
+        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(3, 4);
 
         int[][] expected = new int[][]{
                 {0, -1, -1, 0},
@@ -39,7 +37,7 @@ class GraphTest {
             }
         }
 
-        assertEquals(0, mergeVerticesInfo.getK());
+        assertEquals(3, mergeVerticesInfo.getCost());
     }
 
     @Test
@@ -55,9 +53,7 @@ class GraphTest {
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
 
-        int k = 3;
-
-        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3, k);
+        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3);
 
         int[][] expected = new int[][]{
                 {0, -1, -1, 0},
@@ -74,7 +70,7 @@ class GraphTest {
             }
         }
 
-        assertEquals(0, mergeVerticesInfo.getK());
+        assertEquals(3, mergeVerticesInfo.getCost());
     }
 
     @Test
@@ -90,9 +86,7 @@ class GraphTest {
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
 
-        int k = 3;
-
-        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3, k);
+        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3);
         graph.revertMergeVertices(mergeVerticesInfo);
 
         for (int i = 0; i < 4; i++) {
@@ -117,10 +111,8 @@ class GraphTest {
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
 
-        int k = 3;
-
-        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3, k);
-        mergeVerticesInfo = graph.mergeVertices(1, 2, mergeVerticesInfo.getK());
+        MergeVerticesInfo mergeVerticesInfo1 = graph.mergeVertices(4, 3);
+        MergeVerticesInfo mergeVerticesInfo2 = graph.mergeVertices(1, 2);
 
         int[][] expected = new int[][]{
                 {0, -2, 0},
@@ -136,7 +128,7 @@ class GraphTest {
             }
         }
 
-        assertEquals(0, mergeVerticesInfo.getK());
+        assertEquals(3, mergeVerticesInfo1.getCost() + mergeVerticesInfo2.getCost());
     }
 
     @Test
@@ -152,10 +144,8 @@ class GraphTest {
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
 
-        int k = 3;
-
-        MergeVerticesInfo mergeVerticesInfo1 = graph.mergeVertices(4, 3, k);
-        MergeVerticesInfo mergeVerticesInfo2 = graph.mergeVertices(1, 3, mergeVerticesInfo1.getK());
+        MergeVerticesInfo mergeVerticesInfo1 = graph.mergeVertices(4, 3);
+        MergeVerticesInfo mergeVerticesInfo2 = graph.mergeVertices(1, 3);
         graph.revertMergeVertices(mergeVerticesInfo2);
         graph.revertMergeVertices(mergeVerticesInfo1);
 
@@ -182,9 +172,7 @@ class GraphTest {
         graph.computeEdgeExists();
         graph.computeNeighborhoodWeights();
 
-        int k = 3;
-
-        graph.mergeVertices(3, 4, k);
+        graph.mergeVertices(3, 4);
 
         int[] expected = {0, 6, 2, 4};
 
@@ -207,9 +195,7 @@ class GraphTest {
         graph.computeEdgeExists();
         graph.computeNeighborhoodWeights();
 
-        int k = 3;
-
-        graph.mergeVertices(1, 3, k);
+        graph.mergeVertices(1, 3);
 
         int[] expected = {1, 15, 4, 12};
 
@@ -232,9 +218,7 @@ class GraphTest {
         graph.computeEdgeExists();
         graph.computeNeighborhoodWeights();
 
-        int k = 3;
-
-        graph.revertMergeVertices(graph.mergeVertices(1, 3, k));
+        graph.revertMergeVertices(graph.mergeVertices(1, 3));
 
         int[] expected = {1, 6, 4, 13, 12};
 
@@ -257,9 +241,7 @@ class GraphTest {
         graph.computeEdgeExists();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        int k = 3;
-
-        graph.mergeVertices(3, 4, k);
+        graph.mergeVertices(3, 4);
 
         int[] expected = {2, 7, 3, 4};
 
@@ -282,9 +264,7 @@ class GraphTest {
         graph.computeEdgeExists();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        int k = 3;
-
-        graph.mergeVertices(1, 3, k);
+        graph.mergeVertices(1, 3);
 
         int[] expected = {4, 17, 7, 14};
 
@@ -307,9 +287,7 @@ class GraphTest {
         graph.computeEdgeExists();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        int k = 3;
-
-        graph.revertMergeVertices(graph.mergeVertices(1, 3, k));
+        graph.revertMergeVertices(graph.mergeVertices(1, 3));
 
         int[] expected = {4, 7, 7, 14, 14};
 

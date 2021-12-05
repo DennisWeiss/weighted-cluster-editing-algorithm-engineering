@@ -86,8 +86,8 @@ public class Graph {
         neighborhoodWeights[j] += edgeWeights[i][j];
     }
 
-    public MergeVerticesInfo mergeVertices(int a, int b, int k) {
-        MergeVerticesInfo mergeVerticesInfo = new MergeVerticesInfo(numberOfVertices, a, b, k);
+    public MergeVerticesInfo mergeVertices(int a, int b) {
+        MergeVerticesInfo mergeVerticesInfo = new MergeVerticesInfo(numberOfVertices, a, b);
 
         for (int i = 0; i < numberOfVertices; i++) {
             mergeVerticesInfo.getEdgeWeightsOfFirstVertex()[i] = edgeWeights[a][i];
@@ -101,7 +101,7 @@ public class Graph {
                 int newWeight = mergeVerticesInfo.getEdgeWeightsOfFirstVertex()[i] + mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[i];
 
                 if (edgeExists[a][i] != edgeExists[b][i]) {
-                    mergeVerticesInfo.reduceK(Math.min(Math.abs(edgeWeights[a][i]), Math.abs(edgeWeights[b][i])));
+                    mergeVerticesInfo.increaseCost(Math.min(Math.abs(edgeWeights[a][i]), Math.abs(edgeWeights[b][i])));
                 }
                 edgeWeights[a][i] = newWeight;
                 edgeExists[a][i] = newWeight > 0;
@@ -290,7 +290,7 @@ public class Graph {
         for (int i=numberOfVertices - 1; i > firstInNeighborhood && j >= 0; i--) {//numberOfVertices could get decreased, but only by 1
             if (u == i || edgeExists[u][i]) {
                 //System.out.printf("\tmerge 1st,i: %d %d   %d\n", firstInNeighborhood, i, j);
-                mergedVerticesInfos[j] = mergeVertices(firstInNeighborhood, i, 0);
+                mergedVerticesInfos[j] = mergeVertices(firstInNeighborhood, i);
                 j++;
             }
         }
