@@ -192,13 +192,13 @@ public class Main {
     }
 
     private static boolean[][] reconstructMergeForResultEdgeExists(boolean[][] resultEdgeExists, Graph graph, MergeVerticesInfo mergeVerticesInfo) {
-        boolean[][] newResultEdgeExists = copy(resultEdgeExists, resultEdgeExists.length);
-        boolean[][] newNewResultEdgeExists = new boolean[resultEdgeExists.length][resultEdgeExists.length];
+        boolean[][] ResultEdgeExistsCopy = copy(resultEdgeExists, resultEdgeExists.length);
+        boolean[][] newResultEdgeExists = new boolean[resultEdgeExists.length][resultEdgeExists.length];
 
         if (graph.getNumberOfVertices() != mergeVerticesInfo.getSecondVertex()) {
             for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                newResultEdgeExists[graph.getNumberOfVertices()][i] = resultEdgeExists[mergeVerticesInfo.getSecondVertex()][i];
-                newResultEdgeExists[i][graph.getNumberOfVertices()] = resultEdgeExists[i][mergeVerticesInfo.getSecondVertex()];
+                ResultEdgeExistsCopy[graph.getNumberOfVertices()][i] = resultEdgeExists[mergeVerticesInfo.getSecondVertex()][i];
+                ResultEdgeExistsCopy[i][graph.getNumberOfVertices()] = resultEdgeExists[i][mergeVerticesInfo.getSecondVertex()];
             }
         }
 
@@ -206,27 +206,25 @@ public class Main {
             for (int j = 0; j < graph.getNumberOfVertices() + 1; j++) {
                 if (i != j && i != mergeVerticesInfo.getFirstVertex() && i != mergeVerticesInfo.getSecondVertex()
                         && j != mergeVerticesInfo.getFirstVertex() && j != mergeVerticesInfo.getSecondVertex()) {
-                    newNewResultEdgeExists[i][j] = newResultEdgeExists[i][j];
+                    newResultEdgeExists[i][j] = ResultEdgeExistsCopy[i][j];
                 }
             }
         }
 
         for (int i = 0; i < graph.getNumberOfVertices() + 1; i++) {
             if (i != mergeVerticesInfo.getFirstVertex() && i != mergeVerticesInfo.getSecondVertex()) {
-                boolean edgeExistsWithMergedVertex = newResultEdgeExists[mergeVerticesInfo.getFirstVertex()][i];
-                newNewResultEdgeExists[mergeVerticesInfo.getFirstVertex()][i] = edgeExistsWithMergedVertex;
-                newNewResultEdgeExists[i][mergeVerticesInfo.getFirstVertex()] = edgeExistsWithMergedVertex;
-                newNewResultEdgeExists[mergeVerticesInfo.getSecondVertex()][i] = edgeExistsWithMergedVertex;
-                newNewResultEdgeExists[i][mergeVerticesInfo.getSecondVertex()] = edgeExistsWithMergedVertex;
+                boolean edgeExistsWithMergedVertex = ResultEdgeExistsCopy[mergeVerticesInfo.getFirstVertex()][i];
+                newResultEdgeExists[mergeVerticesInfo.getFirstVertex()][i] = edgeExistsWithMergedVertex;
+                newResultEdgeExists[i][mergeVerticesInfo.getFirstVertex()] = edgeExistsWithMergedVertex;
+                newResultEdgeExists[mergeVerticesInfo.getSecondVertex()][i] = edgeExistsWithMergedVertex;
+                newResultEdgeExists[i][mergeVerticesInfo.getSecondVertex()] = edgeExistsWithMergedVertex;
             }
         }
 
+        newResultEdgeExists[mergeVerticesInfo.getFirstVertex()][mergeVerticesInfo.getSecondVertex()] = true;
+        newResultEdgeExists[mergeVerticesInfo.getSecondVertex()][mergeVerticesInfo.getFirstVertex()] = true;
 
-
-        newNewResultEdgeExists[mergeVerticesInfo.getFirstVertex()][mergeVerticesInfo.getSecondVertex()] = true;
-        newNewResultEdgeExists[mergeVerticesInfo.getSecondVertex()][mergeVerticesInfo.getFirstVertex()] = true;
-
-        return newNewResultEdgeExists;
+        return newResultEdgeExists;
     }
 
     public static boolean[][] ce(Graph graph) {
