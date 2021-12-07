@@ -252,59 +252,6 @@ public class Graph {
         }
     }
 
-    public MergeVerticesInfo[] applyClosedNeighborhoodReductionRule(int u){
-        int sizeOfClosedNeighborhood = 0;
-        int costOfMakingClique = 0;
-        int costOfCuttingOff = 0;
-        int firstInNeighborhood = -1;
-
-        //for Neighbors of u
-        for (int v=0; v<numberOfVertices; v++){
-            if( v != u && edgeWeights[u][v] == 0 ){
-                return null;
-            }
-            if (v == u || edgeExists[u][v]) { //v in closed neighborhood of u
-                if (firstInNeighborhood == -1) {
-                    firstInNeighborhood = v;
-                }
-                sizeOfClosedNeighborhood++;
-
-                for (int w=0; w<numberOfVertices; w++) {
-                    if (w == u || edgeExists[u][w]) { //w in closed neighborhood of u
-                        if( w != v && edgeWeights[v][w] == 0 ){
-                            return null;
-                        }
-                        if (v != w && edgeWeights[v][w] < 0) {
-                            costOfMakingClique += -edgeWeights[v][w];
-                        }
-                    }else{ // w not in the closed neigborhood of u
-                        if (v != w && edgeWeights[v][w] > 0) {
-                            costOfCuttingOff += edgeWeights[v][w];
-                        }
-                    }
-                }
-            }
-        }
-        // factor 2 is already included in costOfMakingClique because of double counting
-        if (sizeOfClosedNeighborhood == 1 || costOfMakingClique + costOfCuttingOff >= sizeOfClosedNeighborhood){
-            return null;
-        }
-
-        // merge all in closed neighborhood
-        MergeVerticesInfo[] mergedVerticesInfos = new MergeVerticesInfo[sizeOfClosedNeighborhood-1];
-        boolean[] edgeExistsOfU = Arrays.copyOf(edgeExists[u], numberOfVertices);
-        int j = 0;
-        for (int i=numberOfVertices - 1; i > firstInNeighborhood; i--) {//numberOfVertices could get decreased, but only by 1
-            if (u == i || edgeExistsOfU[i]) {
-                //System.out.printf("\tmerge 1st,i: %d %d   %d\n", firstInNeighborhood, i, j);
-                mergedVerticesInfos[j] = mergeVertices(firstInNeighborhood, i);
-                j++;
-            }
-        }
-        //to undo those you would have to do them in descending order
-        return mergedVerticesInfos;
-    }
-
     public int getTotalAbsoluteWeight(P3 p3) {
         return edgeWeights[p3.getU()][p3.getV()] + edgeWeights[p3.getV()][p3.getW()] - edgeWeights[p3.getU()][p3.getW()];
     }
