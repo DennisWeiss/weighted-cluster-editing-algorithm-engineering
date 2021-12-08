@@ -31,8 +31,26 @@ public class DataReductionMain {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
+        applyDataReductions(graph);
+
+        //output reduced graph
+        System.out.printf("%d\n", graph.getNumberOfVertices());
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+                System.out.printf("%d %d %d\n", i+1, j+1, graph.getEdgeWeights()[i][j]);
+            }
+        }
+        System.out.printf("#weight: %d\n", weight);
+    }
+
+    private static void applyDataReductions(Graph graph) {
+        boolean changed = false;
+
         //heavy non-edge
         Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = DataReduction.applyHeavyNonEdgeReduction(graph);
+        if (!originalWeightsBeforeHeavyNonEdgeReduction.isEmpty()) {
+            changed = true;
+        }
         while (!originalWeightsBeforeHeavyNonEdgeReduction.isEmpty()) {
             originalWeightsBeforeHeavyNonEdgeReduction.pop();
             if (DEBUG) {
@@ -47,34 +65,30 @@ public class DataReductionMain {
                         || 3 * graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i] + graph.getNeighborhoodWeights()[j]
                 )) {
                     MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j));
+                    changed = true;
                     weight += mergeVerticesInfo.getCost();
                     if (DEBUG) {
-                        System.out.printf("heavy edge data reduction applied for %d and %d (new weight: %d)\n", i+1, j+1, weight);
+                        System.out.printf("heavy edge data reduction applied for %d and %d (new weight: %d)\n", i + 1, j + 1, weight);
                     }
                 }
             }
         }
 
         //large neighborhood rule
-        MergeVerticesInfo[][] mergeVerticesInfos = new MergeVerticesInfo[numberOfVertices][];
-        for (int u=0; u<graph.getNumberOfVertices(); u++) {//currently we do not try to apply the rule to the N[merged vertex] again
-            mergeVerticesInfos[u] = DataReduction.applyClosedNeighborhoodReductionRule(graph,u);
+        MergeVerticesInfo[][] mergeVerticesInfos = new MergeVerticesInfo[graph.getNumberOfVertices()][];
+        for (int u = 0; u < graph.getNumberOfVertices(); u++) {//currently we do not try to apply the rule to the N[merged vertex] again
+            mergeVerticesInfos[u] = DataReduction.applyClosedNeighborhoodReductionRule(graph, u);
             if (mergeVerticesInfos[u] != null) {
+                changed = true;
                 weight += MergeVerticesInfo.getTotalCost(mergeVerticesInfos[u]);
                 if (DEBUG) {
-                    System.out.printf("large neighborhood data reduction applied for %d (new weight: %d)\n", u+1, weight);
+                    System.out.printf("large neighborhood data reduction applied for %d (new weight: %d)\n", u + 1, weight);
                 }
             }
         }
 
-        //output reduced graph
-        System.out.printf("%d\n", graph.getNumberOfVertices());
-        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
-                System.out.printf("%d %d %d\n", i+1, j+1, graph.getEdgeWeights()[i][j]);
-            }
+        if (changed) {
+            applyDataReductions(graph);
         }
-        System.out.printf("#weight: %d\n", weight);
     }
-
 }
