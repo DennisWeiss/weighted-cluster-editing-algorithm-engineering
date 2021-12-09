@@ -212,6 +212,7 @@ public class Main {
             graphCopy = graph.copy();
         }
         for (int k = 0; ; k++) {
+            recursiveSteps++;
             boolean[][] resultEdgeExists = ceBranch(graph, k);
             if (DEBUG) {
                 for (int i = 0; i < graphCopy.getNumberOfVertices(); i++) {
@@ -236,12 +237,14 @@ public class Main {
     public static boolean[][] ceBinarySearchInitial(Graph graph) {
         final double FACTOR = 1.2;
 
+        recursiveSteps++;
         boolean[][] resultEdgeExists = ceBranch(graph, 0);
         if (resultEdgeExists == null) {
             int lo = 1;
             int hi = 1;
             for (int k = 1; ; k = (int) Math.ceil(FACTOR * k)) {
                 hi = k;
+                recursiveSteps++;
                 resultEdgeExists = ceBranch(graph, k);
                 if (resultEdgeExists != null) {
                     resultEdgeExists = ceBinarySearch(graph, lo, hi);
@@ -258,9 +261,11 @@ public class Main {
             if (DEBUG) {
                 System.out.printf("last k = %d\n", lo);
             }
+            recursiveSteps++;
             return ceBranch(graph, lo);
         }
         int k = (lo + hi) / 2;
+        recursiveSteps++;
         boolean[][] resultEdgeExists = ceBranch(graph, k);
         if (resultEdgeExists != null) {
             if (lo == k) {

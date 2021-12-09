@@ -76,13 +76,26 @@ public class DataReductionMain {
 
         //large neighborhood rule
         MergeVerticesInfo[][] mergeVerticesInfos = new MergeVerticesInfo[graph.getNumberOfVertices()][];
-        for (int u = 0; u < graph.getNumberOfVertices(); u++) {//currently we do not try to apply the rule to the N[merged vertex] again
+        for (int u = 0; u < graph.getNumberOfVertices(); u++) {
             mergeVerticesInfos[u] = DataReduction.applyClosedNeighborhoodReductionRule(graph, u);
             if (mergeVerticesInfos[u] != null) {
                 changed = true;
                 weight += MergeVerticesInfo.getTotalCost(mergeVerticesInfos[u]);
                 if (DEBUG) {
                     System.out.printf("large neighborhood data reduction applied for %d (new weight: %d)\n", u + 1, weight);
+                }
+            }
+        }
+
+        //large neighborhood rule
+        MergeVerticesInfo[][] mergeVerticesInfosMinCutRule = new MergeVerticesInfo[graph.getNumberOfVertices()][];
+        for (int u = 0; u < graph.getNumberOfVertices(); u++) {
+            mergeVerticesInfosMinCutRule[u] = DataReduction.applyLargeNeighborhoodMinCutRule(graph, u);
+            if (mergeVerticesInfosMinCutRule[u] != null) {
+                changed = true;
+                weight += MergeVerticesInfo.getTotalCost(mergeVerticesInfosMinCutRule[u]);
+                if (DEBUG) {
+                    System.out.printf("large neighborhood min-cut data reduction applied for %d (new weight: %d)\n", u + 1, weight);
                 }
             }
         }

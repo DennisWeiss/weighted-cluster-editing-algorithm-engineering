@@ -22,7 +22,7 @@ public class MergeVerticesInfo {
     public static int getTotalCost(MergeVerticesInfo[] mergeVerticesInfos) {
         int totalCost = 0;
         for (int i = 0; i < mergeVerticesInfos.length; i++) {
-            totalCost +=  mergeVerticesInfos[i].getCost();
+            totalCost += mergeVerticesInfos[i].getCost();
         }
         return totalCost;
     }
