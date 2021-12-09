@@ -22,12 +22,14 @@ class DataReductionTest {
                 {-1, -1, -1, 20, 4, 0}
         });
 
+        graph.computeEdgeExists();
+
         Set<Integer> indices = new HashSet<>();
 
         for (int i = 0; i < numberOfVertices; i++) {
             indices.add(i);
         }
 
-        assertEquals(24, DataReduction.getNaiveMinCutCost(graph, indices));
+        assertEquals(24, DataReduction.getMinCutCost(graph, indices));
     }
 }

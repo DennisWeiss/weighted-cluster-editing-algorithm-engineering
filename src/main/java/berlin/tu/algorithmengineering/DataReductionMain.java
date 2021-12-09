@@ -87,7 +87,7 @@ public class DataReductionMain {
             }
         }
 
-        //large neighborhood rule
+        //large neighborhood (min-cut) rule
         MergeVerticesInfo[][] mergeVerticesInfosMinCutRule = new MergeVerticesInfo[graph.getNumberOfVertices()][];
         for (int u = 0; u < graph.getNumberOfVertices(); u++) {
             mergeVerticesInfosMinCutRule[u] = DataReduction.applyLargeNeighborhoodMinCutRule(graph, u);

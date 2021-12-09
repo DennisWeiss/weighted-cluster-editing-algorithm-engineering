@@ -1,6 +1,7 @@
 package berlin.tu.algorithmengineering;
 
 
+import berlin.tu.algorithmengineering.mincut.NagamochiIbarakiAlgorithm;
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
 import berlin.tu.algorithmengineering.model.OriginalWeightsInfo;
 
@@ -114,7 +115,7 @@ public class DataReduction {
             }
         }
 
-        int minCutCost = getNaiveMinCutCost(graph, closedNeighborhoodIndices);
+        int minCutCost = getMinCutCost(graph, closedNeighborhoodIndices);
         if (closedNeighborhoodIndices.size() == 1 || costOfMakingClique + costOfCuttingOff > minCutCost) {
             return null;
         }
@@ -149,6 +150,11 @@ public class DataReduction {
         int minCutCostWithVertex = i == subGraphIndices.size() - 1 ? Integer.MAX_VALUE : getNaiveMinCutCost(graph, subGraphIndices, cutComponentIndices, i + 1);
         cutComponentIndices.remove(i);
         return Math.min(minCutCostWithoutVertex, Math.min(cutCostWithVertex, minCutCostWithVertex));
+    }
+
+    public static int getMinCutCost(Graph graph, Set<Integer> subGraphIndices) {
+        NagamochiIbarakiAlgorithm nagamochiIbarakiAlgorithm = new NagamochiIbarakiAlgorithm();
+        return nagamochiIbarakiAlgorithm.getGlobalMinCut(graph.getRepresentationForNagamochiIbaraki(subGraphIndices));
     }
 
     private static int getCutCost(Graph graph, Set<Integer> subGraphIndices, Set<Integer> cutComponentIndices) {

@@ -4,9 +4,7 @@ package berlin.tu.algorithmengineering;
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
 import berlin.tu.algorithmengineering.model.P3;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Graph {
 
@@ -250,6 +248,27 @@ public class Graph {
             edgeWeights[i][mergeVerticesInfo.getSecondVertex()] = mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[i];
             edgeExists[i][mergeVerticesInfo.getSecondVertex()] = mergeVerticesInfo.getEdgeExistsOfSecondVertex()[i];
         }
+    }
+
+    public berlin.tu.algorithmengineering.mincut.Graph getRepresentationForNagamochiIbaraki() {
+        return getRepresentationForNagamochiIbaraki(null);
+    }
+
+    public berlin.tu.algorithmengineering.mincut.Graph getRepresentationForNagamochiIbaraki(Set<Integer> subGraphIndices) {
+        int numberOfVerticesInSubGraph = subGraphIndices == null ? numberOfVertices : subGraphIndices.size();
+        berlin.tu.algorithmengineering.mincut.Graph graph = new berlin.tu.algorithmengineering.mincut.Graph(numberOfVerticesInSubGraph);
+        graph.generateVertices();
+        Integer[] subGraphIndicesArr = new Integer[numberOfVerticesInSubGraph];
+        subGraphIndices.toArray(subGraphIndicesArr);
+
+        for (int i = 0; i < numberOfVerticesInSubGraph; i++) {
+            for (int j = i+1; j < numberOfVerticesInSubGraph; j++) {
+                if (edgeExists[subGraphIndicesArr[i]][subGraphIndicesArr[j]]) {
+                    graph.addEdge(i, j, edgeWeights[subGraphIndicesArr[i]][subGraphIndicesArr[j]]);
+                }
+            }
+        }
+        return graph;
     }
 
     public int getTotalAbsoluteWeight(P3 p3) {
