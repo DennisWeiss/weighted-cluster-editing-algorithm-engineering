@@ -11,7 +11,7 @@ import java.util.Stack;
 
 public class Main {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
 
@@ -35,7 +35,7 @@ public class Main {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        boolean[][] resultEdgeExists = ceBinarySearchInitial(graph);
+        boolean[][] resultEdgeExists = ce(graph);
 
         boolean[][] edgesToEdit = getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
@@ -133,6 +133,7 @@ public class Main {
         graph.revertMergeVertices(mergeVerticesInfo);
 
         if (resultEdgeExists != null) {
+            DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
             return resultEdgeExists;
         }
 
@@ -211,7 +212,7 @@ public class Main {
         if (DEBUG) {
             graphCopy = graph.copy();
         }
-        for (int k = 0; ; k++) {
+        for (int k = 793; ; k++) {
             recursiveSteps++;
             boolean[][] resultEdgeExists = ceBranch(graph, k);
             if (DEBUG) {
@@ -229,7 +230,7 @@ public class Main {
 
             if (resultEdgeExists != null) {
                 if (DEBUG) System.out.printf("last k = %d\n", k);
-                return getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
+                return resultEdgeExists;
             }
         }
     }
