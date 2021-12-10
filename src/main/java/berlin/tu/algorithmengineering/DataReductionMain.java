@@ -8,7 +8,8 @@ import java.util.Stack;
 
 public class DataReductionMain {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
+    public static final int MIN_CUT_COMPUTATION_TIMEOUT = 250;
 
     private static int weight = 0;
 
@@ -31,7 +32,9 @@ public class DataReductionMain {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        applyDataReductions(graph);
+        long startTime = System.currentTimeMillis();
+
+        applyDataReductions(graph, startTime);
 
         //output reduced graph
         System.out.printf("%d\n", graph.getNumberOfVertices());
@@ -43,7 +46,7 @@ public class DataReductionMain {
         System.out.printf("#weight: %d\n", weight);
     }
 
-    private static void applyDataReductions(Graph graph) {
+    private static void applyDataReductions(Graph graph, long startTime) {
         boolean changed = false;
 
         //heavy non-edge
@@ -90,6 +93,9 @@ public class DataReductionMain {
         //large neighborhood (min-cut) rule
         MergeVerticesInfo[][] mergeVerticesInfosMinCutRule = new MergeVerticesInfo[graph.getNumberOfVertices()][];
         for (int u = 0; u < graph.getNumberOfVertices(); u++) {
+            if (System.currentTimeMillis() - startTime > MIN_CUT_COMPUTATION_TIMEOUT * 1000) {
+                break;
+            }
             mergeVerticesInfosMinCutRule[u] = DataReduction.applyLargeNeighborhoodMinCutRule(graph, u);
             if (mergeVerticesInfosMinCutRule[u] != null) {
                 changed = true;
@@ -101,7 +107,7 @@ public class DataReductionMain {
         }
 
         if (changed) {
-            applyDataReductions(graph);
+            applyDataReductions(graph, startTime);
         }
     }
 }
