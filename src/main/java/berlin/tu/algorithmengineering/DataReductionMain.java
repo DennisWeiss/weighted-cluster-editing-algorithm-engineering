@@ -96,7 +96,7 @@ public class DataReductionMain {
             if (System.currentTimeMillis() - startTime > MIN_CUT_COMPUTATION_TIMEOUT * 1000) {
                 break;
             }
-            mergeVerticesInfosMinCutRule[u] = DataReduction.applyLargeNeighborhoodMinCutRule(graph, u);
+            mergeVerticesInfosMinCutRule[u] = DataReduction.applyClosedNeighborhoodMinCutRule(graph, u);
             if (mergeVerticesInfosMinCutRule[u] != null) {
                 changed = true;
                 weight += MergeVerticesInfo.getTotalCost(mergeVerticesInfosMinCutRule[u]);

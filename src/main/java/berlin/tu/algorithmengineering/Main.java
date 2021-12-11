@@ -11,7 +11,7 @@ import java.util.Stack;
 
 public class Main {
 
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
 
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
 
@@ -35,7 +35,7 @@ public class Main {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
-        boolean[][] resultEdgeExists = ce(graph);
+        boolean[][] resultEdgeExists = ceBinarySearchInitial(graph);
 
         boolean[][] edgesToEdit = getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
@@ -80,6 +80,7 @@ public class Main {
         }
 
         Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = DataReduction.applyHeavyNonEdgeReduction(graph);
+//        Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = new Stack<>();
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
@@ -106,7 +107,7 @@ public class Main {
         }
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-            MergeVerticesInfo[] mergeVerticesInfos = DataReduction.applyClosedNeighborhoodReductionRule(graph,i);
+            MergeVerticesInfo[] mergeVerticesInfos = DataReduction.applyClosedNeighborhoodReductionRule(graph, i);
             if (mergeVerticesInfos != null) {
                 resultEdgeExists = ceBranch(graph, k - MergeVerticesInfo.getTotalCost(mergeVerticesInfos));
 
@@ -120,6 +121,29 @@ public class Main {
                 DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
 
                 return resultEdgeExists;
+            }
+        }
+
+        if (Math.random() < 0.2) {
+            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+                MergeVerticesInfo[] mergeVerticesInfos = DataReduction.applyClosedNeighborhoodMinCutRule(graph, i);
+                if (mergeVerticesInfos != null) {
+                    if (DEBUG) {
+                        System.out.println();
+                    }
+                    resultEdgeExists = ceBranch(graph, k - MergeVerticesInfo.getTotalCost(mergeVerticesInfos));
+
+                    for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
+                        if (resultEdgeExists != null) {
+                            resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[j]);
+                        }
+                        graph.revertMergeVertices(mergeVerticesInfos[j]);
+                    }
+
+                    DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
+
+                    return resultEdgeExists;
+                }
             }
         }
 
@@ -216,15 +240,21 @@ public class Main {
             recursiveSteps++;
             boolean[][] resultEdgeExists = ceBranch(graph, k);
             if (DEBUG) {
+                boolean correct = true;
                 for (int i = 0; i < graphCopy.getNumberOfVertices(); i++) {
                     for (int j = 0; j < graphCopy.getNumberOfVertices(); j++) {
                         if (i != j && graph.getEdgeWeights()[i][j] != graphCopy.getEdgeWeights()[i][j]) {
-                            System.out.printf("weights not equal at [%d, %d] with k = %d\n", i, j, k);
+                            System.out.printf("weights %d and %d not equal at [%d, %d] with k = %d\n", graph.getEdgeWeights()[i][j], graphCopy.getEdgeWeights()[i][j], i, j, k);
+                            correct = false;
                         }
                         if (i != j && graph.getEdgeExists()[i][j] != graphCopy.getEdgeExists()[i][j]) {
                             System.out.printf("edgeExists not equal at [%d, %d] with k = %d\n", i, j, k);
+                            correct = false;
                         }
                     }
+                }
+                if (correct) {
+                    System.out.printf("k = %d is correct\n", k);
                 }
             }
 

@@ -87,7 +87,7 @@ public class DataReduction {
         return mergedVerticesInfos;
     }
 
-    public static MergeVerticesInfo[] applyLargeNeighborhoodMinCutRule(Graph graph, int u) {
+    public static MergeVerticesInfo[] applyClosedNeighborhoodMinCutRule(Graph graph, int u) {
         Set<Integer> closedNeighborhoodIndices = new HashSet<>();
         int costOfMakingClique = 0;
         int costOfCuttingOff = 0;
