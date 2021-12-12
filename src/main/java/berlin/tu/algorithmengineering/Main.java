@@ -124,29 +124,6 @@ public class Main {
             }
         }
 
-        if (Math.random() < 0.2) {
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                MergeVerticesInfo[] mergeVerticesInfos = DataReduction.applyClosedNeighborhoodMinCutRule(graph, i);
-                if (mergeVerticesInfos != null) {
-                    if (DEBUG) {
-                        System.out.println();
-                    }
-                    resultEdgeExists = ceBranch(graph, k - MergeVerticesInfo.getTotalCost(mergeVerticesInfos));
-
-                    for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
-                        if (resultEdgeExists != null) {
-                            resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[j]);
-                        }
-                        graph.revertMergeVertices(mergeVerticesInfos[j]);
-                    }
-
-                    DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
-
-                    return resultEdgeExists;
-                }
-            }
-        }
-
         recursiveSteps++;
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());

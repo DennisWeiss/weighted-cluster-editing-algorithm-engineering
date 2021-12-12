@@ -78,8 +78,9 @@ public class DataReduction {
         int j = 0;
         for (int i= graph.getNumberOfVertices() - 1; i > firstInNeighborhood; i--) {//numberOfVertices could get decreased, but only by 1
             if (u == i || edgeExistsOfU[i]) {
-                //System.out.printf("\tmerge 1st,i: %d %d   %d\n", firstInNeighborhood, i, j);
+                int costOfFlippingEdge = Math.max(-graph.getEdgeWeights()[firstInNeighborhood][i], 0);
                 mergedVerticesInfos[j] = graph.mergeVertices(firstInNeighborhood, i);
+                mergedVerticesInfos[j].setCost(mergedVerticesInfos[j].getCost() + costOfFlippingEdge);
                 j++;
             }
         }
@@ -126,8 +127,9 @@ public class DataReduction {
         int j = 0;
         for (int i= graph.getNumberOfVertices() - 1; i > firstInNeighborhood; i--) {//numberOfVertices could get decreased, but only by 1
             if (u == i || edgeExistsOfU[i]) {
-                //System.out.printf("\tmerge 1st,i: %d %d   %d\n", firstInNeighborhood, i, j);
+                int costOfFlippingEdge = Math.max(-graph.getEdgeWeights()[firstInNeighborhood][i], 0);
                 mergedVerticesInfos[j] = graph.mergeVertices(firstInNeighborhood, i);
+                mergedVerticesInfos[j].setCost(mergedVerticesInfos[j].getCost() + costOfFlippingEdge);
                 j++;
             }
         }
