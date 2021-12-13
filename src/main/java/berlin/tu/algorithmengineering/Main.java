@@ -80,7 +80,6 @@ public class Main {
         }
 
         Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = DataReduction.applyHeavyNonEdgeReduction(graph);
-//        Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = new Stack<>();
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
