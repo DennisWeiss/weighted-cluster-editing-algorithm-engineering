@@ -250,24 +250,17 @@ public class Graph {
         }
     }
 
-    public berlin.tu.algorithmengineering.mincut.Graph getRepresentationForNagamochiIbaraki() {
-        return getRepresentationForNagamochiIbaraki(null);
-    }
-
-    public berlin.tu.algorithmengineering.mincut.Graph getRepresentationForNagamochiIbaraki(Set<Integer> subGraphIndices) {
-        int numberOfVerticesInSubGraph = subGraphIndices == null ? numberOfVertices : subGraphIndices.size();
-        berlin.tu.algorithmengineering.mincut.Graph graph = new berlin.tu.algorithmengineering.mincut.Graph(numberOfVerticesInSubGraph);
-        graph.generateVertices();
-        Integer[] subGraphIndicesArr = new Integer[numberOfVerticesInSubGraph];
-        subGraphIndices.toArray(subGraphIndicesArr);
-
-        for (int i = 0; i < numberOfVerticesInSubGraph; i++) {
-            for (int j = i+1; j < numberOfVerticesInSubGraph; j++) {
-                if (edgeExists[subGraphIndicesArr[i]][subGraphIndicesArr[j]]) {
-                    graph.addEdge(i, j, edgeWeights[subGraphIndicesArr[i]][subGraphIndicesArr[j]]);
-                }
+    public Graph getSubGraph(int[] subGraphIndices) {
+        Graph graph = new Graph(subGraphIndices.length);
+        for (int i = 0; i < subGraphIndices.length; i++) {
+            for (int j = 0; j < subGraphIndices.length; j++) {
+                graph.getEdgeWeights()[i][j] = edgeWeights[subGraphIndices[i]][subGraphIndices[j]];
+                graph.getEdgeExists()[i][j] = edgeExists[subGraphIndices[i]][subGraphIndices[j]];
             }
         }
+        graph.computeNeighborhoodWeights();
+        graph.computeAbsoluteNeighborhoodWeights();
+
         return graph;
     }
 
@@ -349,6 +342,16 @@ public class Graph {
             }
         }
         return lowerBound;
+    }
+
+    public int getWeightedDegreeCut(int u) {
+        int weightedDegreeCut = 0;
+        for (int i = 0; i < getNumberOfVertices(); i++) {
+            if (u != i) {
+                weightedDegreeCut += Math.max(edgeWeights[u][i], 0);
+            }
+        }
+        return weightedDegreeCut;
     }
 
     public boolean[][] computeEdgeExists() {

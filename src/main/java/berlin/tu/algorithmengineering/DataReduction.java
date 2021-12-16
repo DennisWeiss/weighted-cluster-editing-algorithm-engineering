@@ -89,7 +89,7 @@ public class DataReduction {
     }
 
     public static MergeVerticesInfo[] applyClosedNeighborhoodMinCutRule(Graph graph, int u) {
-        Set<Integer> closedNeighborhoodIndices = new HashSet<>();
+        int closedNeighborhoodSize = 0;
         int costOfMakingClique = 0;
         int costOfCuttingOff = 0;
         int firstInNeighborhood = -1;
@@ -100,7 +100,7 @@ public class DataReduction {
                 if (firstInNeighborhood == -1) {
                     firstInNeighborhood = v;
                 }
-                closedNeighborhoodIndices.add(v);
+                closedNeighborhoodSize++;
 
                 for (int w = 0; w < graph.getNumberOfVertices(); w++) {
                     if (w == u || graph.getEdgeExists()[u][w]) { //w in closed neighborhood of u
@@ -116,13 +116,23 @@ public class DataReduction {
             }
         }
 
+        int[] closedNeighborhoodIndices = new int[closedNeighborhoodSize];
+        int index = 0;
+
+        for (int v = 0; v < graph.getNumberOfVertices(); v++) {
+            if (v == u || graph.getEdgeExists()[u][v]) {
+                closedNeighborhoodIndices[index] = v;
+                index++;
+            }
+        }
+
         int minCutCost = getMinCutCost(graph, closedNeighborhoodIndices);
-        if (closedNeighborhoodIndices.size() == 1 || costOfMakingClique + costOfCuttingOff > minCutCost) {
+        if (closedNeighborhoodSize == 1 || costOfMakingClique + costOfCuttingOff > minCutCost) {
             return null;
         }
 
         // merge all in closed neighborhood
-        MergeVerticesInfo[] mergedVerticesInfos = new MergeVerticesInfo[closedNeighborhoodIndices.size() - 1];
+        MergeVerticesInfo[] mergedVerticesInfos = new MergeVerticesInfo[closedNeighborhoodSize - 1];
         boolean[] edgeExistsOfU = Arrays.copyOf(graph.getEdgeExists()[u], graph.getNumberOfVertices());
         int j = 0;
         for (int i= graph.getNumberOfVertices() - 1; i > firstInNeighborhood; i--) {//numberOfVertices could get decreased, but only by 1
@@ -154,9 +164,8 @@ public class DataReduction {
         return Math.min(minCutCostWithoutVertex, Math.min(cutCostWithVertex, minCutCostWithVertex));
     }
 
-    public static int getMinCutCost(Graph graph, Set<Integer> subGraphIndices) {
-        NagamochiIbarakiAlgorithm nagamochiIbarakiAlgorithm = new NagamochiIbarakiAlgorithm();
-        return nagamochiIbarakiAlgorithm.getGlobalMinCut(graph.getRepresentationForNagamochiIbaraki(subGraphIndices));
+    public static int getMinCutCost(Graph graph, int[] subGraphIndices) {
+        return NagamochiIbarakiAlgorithm.getGlobalMinCutCost(graph.getSubGraph(subGraphIndices));
     }
 
     private static int getCutCost(Graph graph, Set<Integer> subGraphIndices, Set<Integer> cutComponentIndices) {

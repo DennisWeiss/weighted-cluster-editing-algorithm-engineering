@@ -1,16 +1,14 @@
 package berlin.tu.algorithmengineering;
 
+import berlin.tu.algorithmengineering.mincut.NagamochiIbarakiAlgorithm;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DataReductionTest {
 
     @Test
-    void getMinCutCost() {
+    void getMinCutCostTest1() {
         int numberOfVertices = 6;
         Graph graph = new Graph(numberOfVertices);
         graph.setEdgeWeights(new int[][]{
@@ -24,12 +22,26 @@ class DataReductionTest {
 
         graph.computeEdgeExists();
 
-        Set<Integer> indices = new HashSet<>();
+        int globalMinCutCost = NagamochiIbarakiAlgorithm.getGlobalMinCutCost(graph);
+        assertEquals(24, globalMinCutCost);
+    }
 
-        for (int i = 0; i < numberOfVertices; i++) {
-            indices.add(i);
-        }
+    @Test
+    void getMinCutCostTest2() {
+        int numberOfVertices = 6;
+        Graph graph = new Graph(numberOfVertices);
+        graph.setEdgeWeights(new int[][]{
+                {0, 62, 1, 7, 54, 7},
+                {62, 0, 0, 0, 114, 9},
+                {1, 0, 0, 98, 0, 41},
+                {7, 0, 98, 0, 2, 52},
+                {54, 114, 0, 2, 0, 7},
+                {7, 9, 41, 52, 7, 0}
+        });
 
-        assertEquals(24, DataReduction.getMinCutCost(graph, indices));
+        graph.computeEdgeExists();
+
+        int globalMinCutCost = NagamochiIbarakiAlgorithm.getGlobalMinCutCost(graph);
+        assertEquals(33, globalMinCutCost);
     }
 }
