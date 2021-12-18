@@ -1,6 +1,7 @@
 package berlin.tu.algorithmengineering;
 
 
+import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
 import berlin.tu.algorithmengineering.model.OriginalWeightsInfo;
 import berlin.tu.algorithmengineering.model.P3;
@@ -37,29 +38,9 @@ public class Main {
 
         boolean[][] resultEdgeExists = ceBinarySearchInitial(graph);
 
-        boolean[][] edgesToEdit = getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
+        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
-        if (DEBUG) {
-            int cost = 0;
-
-            for (int i = 0; i < numberOfVertices; i++) {
-                for (int j = i+1; j < numberOfVertices; j++) {
-                    if (edgesToEdit[i][j]) {
-                        cost += Math.abs(graph.getEdgeWeights()[i][j]);
-                    }
-                }
-            }
-
-            System.out.printf("cost = %d\n", cost);
-        }
-
-        for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i+1; j < numberOfVertices; j++) {
-                if (edgesToEdit[i][j]) {
-                    System.out.printf("%d %d\n", i+1, j+1);
-                }
-            }
-        }
+        Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
 
         System.out.printf("#recursive steps: %d\n", recursiveSteps);
     }
@@ -72,7 +53,7 @@ public class Main {
         List<P3> p3List = graph.findAllP3();
 
         if (p3List.isEmpty()) {
-            return copy(graph.getEdgeExists(), graph.getNumberOfVertices());
+            return Utils.copy(graph.getEdgeExists(), graph.getNumberOfVertices());
         }
 
         if (graph.getLowerBound2(p3List) > k) {
@@ -95,7 +76,7 @@ public class Main {
                     resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
 
                     if (resultEdgeExists != null) {
-                        resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
+                        resultEdgeExists = Utils.reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
                     }
                     graph.revertMergeVertices(mergeVerticesInfo);
                     DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
@@ -112,7 +93,7 @@ public class Main {
 
                 for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
                     if (resultEdgeExists != null) {
-                        resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[j]);
+                        resultEdgeExists = Utils.reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfos[j]);
                     }
                     graph.revertMergeVertices(mergeVerticesInfos[j]);
                 }
@@ -128,7 +109,7 @@ public class Main {
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
         resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
         if (resultEdgeExists != null) {
-            resultEdgeExists = reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
+            resultEdgeExists = Utils.reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
         }
         graph.revertMergeVertices(mergeVerticesInfo);
 
@@ -166,45 +147,6 @@ public class Main {
             }
         }
         return biggestWeightP3;
-    }
-
-    private static boolean[][] reconstructMergeForResultEdgeExists(boolean[][] resultEdgeExists, Graph graph, MergeVerticesInfo mergeVerticesInfo) {
-        boolean[][] ResultEdgeExistsCopy = copy(resultEdgeExists, resultEdgeExists.length);
-        boolean[][] newResultEdgeExists = new boolean[resultEdgeExists.length][resultEdgeExists.length];
-
-        // Just for convenience
-        if (graph.getNumberOfVertices() != mergeVerticesInfo.getSecondVertex()) {
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                ResultEdgeExistsCopy[graph.getNumberOfVertices()][i] = resultEdgeExists[mergeVerticesInfo.getSecondVertex()][i];
-                ResultEdgeExistsCopy[i][graph.getNumberOfVertices()] = resultEdgeExists[i][mergeVerticesInfo.getSecondVertex()];
-            }
-        }
-
-        // Just copy value if neither i or j are merged vertex
-        for (int i = 0; i < graph.getNumberOfVertices() + 1; i++) {
-            for (int j = 0; j < graph.getNumberOfVertices() + 1; j++) {
-                if (i != j && i != mergeVerticesInfo.getFirstVertex() && i != mergeVerticesInfo.getSecondVertex()
-                        && j != mergeVerticesInfo.getFirstVertex() && j != mergeVerticesInfo.getSecondVertex()) {
-                    newResultEdgeExists[i][j] = ResultEdgeExistsCopy[i][j];
-                }
-            }
-        }
-
-        // Setting resultEdge if a vertex is a vertex which has been merged from
-        for (int i = 0; i < graph.getNumberOfVertices() + 1; i++) {
-            if (i != mergeVerticesInfo.getFirstVertex() && i != mergeVerticesInfo.getSecondVertex()) {
-                boolean edgeExistsWithMergedVertex = ResultEdgeExistsCopy[mergeVerticesInfo.getFirstVertex()][i];
-                newResultEdgeExists[mergeVerticesInfo.getFirstVertex()][i] = edgeExistsWithMergedVertex;
-                newResultEdgeExists[i][mergeVerticesInfo.getFirstVertex()] = edgeExistsWithMergedVertex;
-                newResultEdgeExists[mergeVerticesInfo.getSecondVertex()][i] = edgeExistsWithMergedVertex;
-                newResultEdgeExists[i][mergeVerticesInfo.getSecondVertex()] = edgeExistsWithMergedVertex;
-            }
-        }
-
-        newResultEdgeExists[mergeVerticesInfo.getFirstVertex()][mergeVerticesInfo.getSecondVertex()] = true;
-        newResultEdgeExists[mergeVerticesInfo.getSecondVertex()][mergeVerticesInfo.getFirstVertex()] = true;
-
-        return newResultEdgeExists;
     }
 
     public static boolean[][] ce(Graph graph) {
@@ -284,25 +226,5 @@ public class Main {
             return ceBinarySearch(graph, lo, k);
         }
         return ceBinarySearch(graph, k + 1, hi);
-    }
-
-    private static boolean[][] getEdgesToEditFromResultEdgeExists(boolean[][] edgeExists, boolean[][] resultEdgeExists) {
-        boolean[][] edgesToEdit = new boolean[edgeExists.length][edgeExists.length];
-        for (int i = 0; i < edgeExists.length; i++) {
-            for (int j = 0; j < edgeExists.length; j++) {
-                edgesToEdit[i][j] = edgeExists[i][j] != resultEdgeExists[i][j];
-            }
-        }
-        return edgesToEdit;
-    }
-
-    private static boolean[][] copy(boolean[][] mat, int size) {
-        boolean[][] copy = new boolean[mat.length][mat.length];
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                copy[i][j] = mat[i][j];
-            }
-        }
-        return copy;
     }
 }

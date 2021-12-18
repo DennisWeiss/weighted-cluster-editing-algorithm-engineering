@@ -33,6 +33,11 @@
             <version>3.3.0</version>
             <type>maven-plugin</type>
         </dependency>
+        <dependency>
+            <groupId>com.ibm</groupId>
+            <artifactId>ilogcplex</artifactId>
+            <version>12.9.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -90,6 +95,25 @@
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
                             <finalName>team3-datareduction</finalName>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>ilp</id>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <archive>
+                                <manifest>
+                                    <mainClass>berlin.tu.algorithmengineering.linearprogramming.LinearProgrammingMain</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>team3-ilp</finalName>
                         </configuration>
                         <phase>package</phase>
                         <goals>

@@ -250,6 +250,14 @@ public class Graph {
         }
     }
 
+    public void revertFromMergeVerticesInfoStack(Stack<MergeVerticesInfo> mergeVerticesInfoStack) {
+        MergeVerticesInfo mergeVerticesInfo;
+        while ((mergeVerticesInfo = mergeVerticesInfoStack.pop()) != null) {
+            revertMergeVertices(mergeVerticesInfo);
+        }
+    }
+
+
     public Graph getSubGraph(int[] subGraphIndices) {
         Graph graph = new Graph(subGraphIndices.length);
         for (int i = 0; i < subGraphIndices.length; i++) {

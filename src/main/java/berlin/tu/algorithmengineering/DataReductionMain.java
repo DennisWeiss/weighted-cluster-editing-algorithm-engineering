@@ -11,8 +11,6 @@ public class DataReductionMain {
     public static final boolean DEBUG = false;
     public static final int MIN_CUT_COMPUTATION_TIMEOUT = 250;
 
-    private static int weight = 0;
-
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         int numberOfVertices = scanner.nextInt();
@@ -34,7 +32,7 @@ public class DataReductionMain {
 
         long startTime = System.currentTimeMillis();
 
-        applyDataReductions(graph, startTime);
+        Stack<MergeVerticesInfo> mergeVerticesInfoStack = DataReduction.applyDataReductions(graph, startTime, MIN_CUT_COMPUTATION_TIMEOUT, DEBUG);
 
         //output reduced graph
         System.out.printf("%d\n", graph.getNumberOfVertices());
@@ -43,71 +41,7 @@ public class DataReductionMain {
                 System.out.printf("%d %d %d\n", i+1, j+1, graph.getEdgeWeights()[i][j]);
             }
         }
-        System.out.printf("#weight: %d\n", weight);
-    }
 
-    private static void applyDataReductions(Graph graph, long startTime) {
-        boolean changed = false;
-
-        //heavy non-edge
-        Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = DataReduction.applyHeavyNonEdgeReduction(graph);
-        if (!originalWeightsBeforeHeavyNonEdgeReduction.isEmpty()) {
-            changed = true;
-        }
-        while (!originalWeightsBeforeHeavyNonEdgeReduction.isEmpty()) {
-            originalWeightsBeforeHeavyNonEdgeReduction.pop();
-            if (DEBUG) {
-                System.out.print("heavy non-edge data reduction applied\n");
-            }
-        }
-
-        //heavy edge single end & heavy edge both ends
-        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-            for (int j = 0; j < graph.getNumberOfVertices(); j++) {
-                if (i != j && (graph.getEdgeWeights()[i][j] + Math.abs(graph.getEdgeWeights()[i][j]) >= graph.getAbsoluteNeighborhoodWeights()[i]
-                        || 3 * graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i] + graph.getNeighborhoodWeights()[j]
-                )) {
-                    MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j));
-                    changed = true;
-                    weight += mergeVerticesInfo.getCost();
-                    if (DEBUG) {
-                        System.out.printf("heavy edge data reduction applied for %d and %d (new weight: %d)\n", i + 1, j + 1, weight);
-                    }
-                }
-            }
-        }
-
-        //large neighborhood rule
-        MergeVerticesInfo[][] mergeVerticesInfos = new MergeVerticesInfo[graph.getNumberOfVertices()][];
-        for (int u = 0; u < graph.getNumberOfVertices(); u++) {
-            mergeVerticesInfos[u] = DataReduction.applyClosedNeighborhoodReductionRule(graph, u);
-            if (mergeVerticesInfos[u] != null) {
-                changed = true;
-                weight += MergeVerticesInfo.getTotalCost(mergeVerticesInfos[u]);
-                if (DEBUG) {
-                    System.out.printf("large neighborhood data reduction applied for %d (new weight: %d)\n", u + 1, weight);
-                }
-            }
-        }
-
-        //large neighborhood (min-cut) rule
-        MergeVerticesInfo[][] mergeVerticesInfosMinCutRule = new MergeVerticesInfo[graph.getNumberOfVertices()][];
-        for (int u = 0; u < graph.getNumberOfVertices(); u++) {
-            if (System.currentTimeMillis() - startTime > MIN_CUT_COMPUTATION_TIMEOUT * 1000) {
-                break;
-            }
-            mergeVerticesInfosMinCutRule[u] = DataReduction.applyClosedNeighborhoodMinCutRule(graph, u);
-            if (mergeVerticesInfosMinCutRule[u] != null) {
-                changed = true;
-                weight += MergeVerticesInfo.getTotalCost(mergeVerticesInfosMinCutRule[u]);
-                if (DEBUG) {
-                    System.out.printf("large neighborhood min-cut data reduction applied for %d (new weight: %d)\n", u + 1, weight);
-                }
-            }
-        }
-
-        if (changed) {
-            applyDataReductions(graph, startTime);
-        }
+        System.out.printf("#weight: %d\n", DataReduction.getTotalCost(mergeVerticesInfoStack));
     }
 }
