@@ -2,7 +2,9 @@ package berlin.tu.algorithmengineering.common;
 
 import berlin.tu.algorithmengineering.Graph;
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
+import com.google.ortools.sat.CpModel;
 
+import java.util.Scanner;
 import java.util.Stack;
 
 public class Utils {
@@ -84,9 +86,9 @@ public class Utils {
     }
 
     public static boolean[][] copy(boolean[][] mat, int size) {
-        boolean[][] copy = new boolean[mat.length][mat.length];
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
+        boolean[][] copy = new boolean[size][size];
+        for (int i = 0; i < Math.min(mat.length, size); i++) {
+            for (int j = 0; j < Math.min(mat.length, size); j++) {
                 copy[i][j] = mat[i][j];
             }
         }
@@ -101,6 +103,30 @@ public class Utils {
         while (!helperStack.empty()) {
             stack.push(helperStack.pop());
         }
+    }
+
+    public static Graph readGraphFromConsoleInput() {
+        Scanner scanner = new Scanner(System.in);
+        int numberOfVertices = scanner.nextInt();
+
+        Graph graph = new Graph(numberOfVertices);
+
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = i + 1; j < numberOfVertices; j++) {
+                int vertex1 = scanner.nextInt() - 1;
+                int vertex2 = scanner.nextInt() - 1;
+                int edgeWeight = scanner.nextInt();
+
+                graph.getEdgeWeights()[vertex1][vertex2] = edgeWeight;
+                graph.getEdgeWeights()[vertex2][vertex1] = edgeWeight;
+            }
+        }
+
+        graph.computeEdgeExists();
+        graph.computeNeighborhoodWeights();
+        graph.computeAbsoluteNeighborhoodWeights();
+
+        return graph;
     }
 
 }

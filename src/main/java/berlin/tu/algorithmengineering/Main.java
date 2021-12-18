@@ -7,7 +7,6 @@ import berlin.tu.algorithmengineering.model.OriginalWeightsInfo;
 import berlin.tu.algorithmengineering.model.P3;
 
 import java.util.List;
-import java.util.Scanner;
 import java.util.Stack;
 
 public class Main {
@@ -19,24 +18,9 @@ public class Main {
     private static int recursiveSteps = 0;
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        int numberOfVertices = scanner.nextInt();
+        Graph graph = Utils.readGraphFromConsoleInput();
 
-        Graph graph = new Graph(numberOfVertices);
-
-        for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i + 1; j < numberOfVertices; j++) {
-                int vertex1 = scanner.nextInt() - 1;
-                int vertex2 = scanner.nextInt() - 1;
-                int edgeWeight = scanner.nextInt();
-                graph.setEdge(vertex1, vertex2, edgeWeight);
-            }
-        }
-
-        graph.computeNeighborhoodWeights();
-        graph.computeAbsoluteNeighborhoodWeights();
-
-        boolean[][] resultEdgeExists = ceBinarySearchInitial(graph);
+        boolean[][] resultEdgeExists = weightedClusterEditingBinarySearchInitial(graph);
 
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
@@ -45,7 +29,7 @@ public class Main {
         System.out.printf("#recursive steps: %d\n", recursiveSteps);
     }
 
-    private static boolean[][] ceBranch(Graph graph, int k) {
+    private static boolean[][] weightedClusterEditingBranch(Graph graph, int k) {
         if (k < 0) {
             return null;
         }
@@ -73,7 +57,7 @@ public class Main {
                         || 3 * graph.getEdgeWeights()[i][j] >= graph.getNeighborhoodWeights()[i] + graph.getNeighborhoodWeights()[j]
                 )) {
                     MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(Math.min(i, j), Math.max(i, j));
-                    resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
+                    resultEdgeExists = weightedClusterEditingBranch(graph, k - mergeVerticesInfo.getCost());
 
                     if (resultEdgeExists != null) {
                         resultEdgeExists = Utils.reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
@@ -89,7 +73,7 @@ public class Main {
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             MergeVerticesInfo[] mergeVerticesInfos = DataReduction.applyClosedNeighborhoodReductionRule(graph, i);
             if (mergeVerticesInfos != null) {
-                resultEdgeExists = ceBranch(graph, k - MergeVerticesInfo.getTotalCost(mergeVerticesInfos));
+                resultEdgeExists = weightedClusterEditingBranch(graph, k - MergeVerticesInfo.getTotalCost(mergeVerticesInfos));
 
                 for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
                     if (resultEdgeExists != null) {
@@ -107,7 +91,7 @@ public class Main {
         recursiveSteps++;
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
-        resultEdgeExists = ceBranch(graph, k - mergeVerticesInfo.getCost());
+        resultEdgeExists = weightedClusterEditingBranch(graph, k - mergeVerticesInfo.getCost());
         if (resultEdgeExists != null) {
             resultEdgeExists = Utils.reconstructMergeForResultEdgeExists(resultEdgeExists, graph, mergeVerticesInfo);
         }
@@ -124,7 +108,7 @@ public class Main {
         graph.getEdgeWeights()[p3.getV()][p3.getU()] = FORBIDDEN_VALUE;
         graph.getAbsoluteNeighborhoodWeights()[p3.getU()] += -FORBIDDEN_VALUE + cost;
         graph.getAbsoluteNeighborhoodWeights()[p3.getV()] += -FORBIDDEN_VALUE + cost;
-        resultEdgeExists = ceBranch(graph, k + cost);
+        resultEdgeExists = weightedClusterEditingBranch(graph, k + cost);
         graph.getEdgeWeights()[p3.getU()][p3.getV()] = cost;
         graph.getEdgeWeights()[p3.getV()][p3.getU()] = cost;
         graph.getAbsoluteNeighborhoodWeights()[p3.getU()] -= -FORBIDDEN_VALUE + cost;
@@ -149,14 +133,14 @@ public class Main {
         return biggestWeightP3;
     }
 
-    public static boolean[][] ce(Graph graph) {
+    public static boolean[][] weightedClusterEditing(Graph graph) {
         Graph graphCopy = null;
         if (DEBUG) {
             graphCopy = graph.copy();
         }
         for (int k = 793; ; k++) {
             recursiveSteps++;
-            boolean[][] resultEdgeExists = ceBranch(graph, k);
+            boolean[][] resultEdgeExists = weightedClusterEditingBranch(graph, k);
             if (DEBUG) {
                 boolean correct = true;
                 for (int i = 0; i < graphCopy.getNumberOfVertices(); i++) {
@@ -183,20 +167,20 @@ public class Main {
         }
     }
 
-    public static boolean[][] ceBinarySearchInitial(Graph graph) {
+    public static boolean[][] weightedClusterEditingBinarySearchInitial(Graph graph) {
         final double FACTOR = 1.2;
 
         recursiveSteps++;
-        boolean[][] resultEdgeExists = ceBranch(graph, 0);
+        boolean[][] resultEdgeExists = weightedClusterEditingBranch(graph, 0);
         if (resultEdgeExists == null) {
             int lo = 1;
             int hi = 1;
             for (int k = 1; ; k = (int) Math.ceil(FACTOR * k)) {
                 hi = k;
                 recursiveSteps++;
-                resultEdgeExists = ceBranch(graph, k);
+                resultEdgeExists = weightedClusterEditingBranch(graph, k);
                 if (resultEdgeExists != null) {
-                    resultEdgeExists = ceBinarySearch(graph, lo, hi);
+                    resultEdgeExists = weightedClusterEditingBinarySearch(graph, lo, hi);
                     break;
                 }
                 lo = k;
@@ -205,17 +189,17 @@ public class Main {
         return resultEdgeExists;
     }
 
-    private static boolean[][] ceBinarySearch(Graph graph, int lo, int hi) {
+    private static boolean[][] weightedClusterEditingBinarySearch(Graph graph, int lo, int hi) {
         if (lo == hi) {
             if (DEBUG) {
                 System.out.printf("last k = %d\n", lo);
             }
             recursiveSteps++;
-            return ceBranch(graph, lo);
+            return weightedClusterEditingBranch(graph, lo);
         }
         int k = (lo + hi) / 2;
         recursiveSteps++;
-        boolean[][] resultEdgeExists = ceBranch(graph, k);
+        boolean[][] resultEdgeExists = weightedClusterEditingBranch(graph, k);
         if (resultEdgeExists != null) {
             if (lo == k) {
                 if (DEBUG) {
@@ -223,8 +207,8 @@ public class Main {
                 }
                 return resultEdgeExists;
             }
-            return ceBinarySearch(graph, lo, k);
+            return weightedClusterEditingBinarySearch(graph, lo, k);
         }
-        return ceBinarySearch(graph, k + 1, hi);
+        return weightedClusterEditingBinarySearch(graph, k + 1, hi);
     }
 }

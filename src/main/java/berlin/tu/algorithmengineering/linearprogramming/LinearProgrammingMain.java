@@ -19,10 +19,8 @@ public class LinearProgrammingMain {
     public static final int MIN_CUT_COMPUTATION_TIMEOUT = 100;
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        int numberOfVertices = scanner.nextInt();
-
-        Graph graph = new Graph(numberOfVertices);
+        Graph graph = Utils.readGraphFromConsoleInput();
+        int numberOfVertices = graph.getNumberOfVertices();
 
         try {
             IloCplex cplex = new IloCplex();
@@ -31,21 +29,6 @@ public class LinearProgrammingMain {
                 // To not output logs to console
                 cplex.setOut(null);
             }
-
-            for (int i = 0; i < numberOfVertices; i++) {
-                for (int j = i + 1; j < numberOfVertices; j++) {
-                    int vertex1 = scanner.nextInt() - 1;
-                    int vertex2 = scanner.nextInt() - 1;
-                    int edgeWeight = scanner.nextInt();
-
-                    graph.getEdgeWeights()[vertex1][vertex2] = edgeWeight;
-                    graph.getEdgeWeights()[vertex2][vertex1] = edgeWeight;
-                }
-            }
-
-            graph.computeEdgeExists();
-            graph.computeNeighborhoodWeights();
-            graph.computeAbsoluteNeighborhoodWeights();
 
             Stack<MergeVerticesInfo> mergeVerticesInfoStack = DataReduction.applyDataReductions(graph, System.currentTimeMillis(), MIN_CUT_COMPUTATION_TIMEOUT, DEBUG);
 
@@ -91,16 +74,7 @@ public class LinearProgrammingMain {
                 System.out.printf("k = %d + %d\n", (int) cplex.getObjValue(), DataReduction.getTotalCost(mergeVerticesInfoStack));
             }
 
-            boolean[][] resultEdgeExists = new boolean[numberOfVertices][numberOfVertices];
-
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
-                    if (Math.round(cplex.getValue(x[i][j])) == 1.0) {
-                        resultEdgeExists[i][j] = true;
-                        resultEdgeExists[j][i] = true;
-                    }
-                }
-            }
+            boolean[][] resultEdgeExists = getResultEdgeExists(graph, numberOfVertices, cplex, x);
 
             boolean[][] reconstructedResultsEdgeExists = Utils.copy(resultEdgeExists, resultEdgeExists.length);
             while (!mergeVerticesInfoStack.empty()) {
@@ -115,6 +89,20 @@ public class LinearProgrammingMain {
         } catch (IloException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean[][] getResultEdgeExists(Graph graph, int numberOfVertices, IloCplex cplex, IloIntVar[][] x) throws IloException {
+        boolean[][] resultEdgeExists = new boolean[numberOfVertices][numberOfVertices];
+
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
+                if (Math.round(cplex.getValue(x[i][j])) == 1.0) {
+                    resultEdgeExists[i][j] = true;
+                    resultEdgeExists[j][i] = true;
+                }
+            }
+        }
+        return resultEdgeExists;
     }
 
 }

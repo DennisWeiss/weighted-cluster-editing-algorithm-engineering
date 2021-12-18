@@ -44,6 +44,11 @@
             <artifactId>ilogcplex</artifactId>
             <version>12.9.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.ortools</groupId>
+            <artifactId>ortools-java</artifactId>
+            <version>9.1.9490</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -52,14 +57,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <version>2.5.2</version>
-                <configuration>
-                    <groupId>com.ibm</groupId>
-                    <artifactId>ilogcplex</artifactId>
-                    <version>12.9.0</version>
-                    <file>${basedir}/lib/cplex.jar</file>
-                    <packaging>jar</packaging>
-                    <generatePom>true</generatePom>
-                </configuration>
                 <executions>
                     <execution>
                         <id>cplex-dependency</id>
@@ -67,6 +64,14 @@
                             <goal>install-file</goal>
                         </goals>
                         <phase>install</phase>
+                        <configuration>
+                            <groupId>com.ibm</groupId>
+                            <artifactId>ilogcplex</artifactId>
+                            <version>12.9.0</version>
+                            <file>${basedir}/lib/cplex.jar</file>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -141,6 +146,25 @@
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
                             <finalName>team3-ilp</finalName>
+                        </configuration>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>csp</id>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <archive>
+                                <manifest>
+                                    <mainClass>berlin.tu.algorithmengineering.constraintsatisfaction.ConstraintSatisfactionMain</mainClass>
+                                </manifest>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <finalName>team3-csp</finalName>
                         </configuration>
                         <phase>package</phase>
                         <goals>
