@@ -1,9 +1,12 @@
 package berlin.tu.algorithmengineering;
 
+import berlin.tu.algorithmengineering.heuristic.Heuristics;
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.*;
 
 class GraphTest {
 
@@ -32,12 +35,12 @@ class GraphTest {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (i != j) {
-                    assertEquals(expected[i][j], graph.getEdgeWeights()[i][j]);
+                    assertThat(graph.getEdgeWeights()[i][j]).isEqualTo(expected[i][j]);
                 }
             }
         }
 
-        assertEquals(3, mergeVerticesInfo.getCost());
+        assertThat(mergeVerticesInfo.getCost()).isEqualTo(3);
     }
 
     @Test
@@ -65,12 +68,12 @@ class GraphTest {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (i != j) {
-                    assertEquals(expected[i][j], graph.getEdgeWeights()[i][j]);
+                    assertThat(graph.getEdgeWeights()[i][j]).isEqualTo(expected[i][j]);
                 }
             }
         }
 
-        assertEquals(3, mergeVerticesInfo.getCost());
+        assertThat(mergeVerticesInfo.getCost()).isEqualTo(3);
     }
 
     @Test
@@ -92,7 +95,7 @@ class GraphTest {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (i != j) {
-                    assertEquals(edges[i][j], graph.getEdgeWeights()[i][j]);
+                    assertThat(graph.getEdgeWeights()[i][j]).isEqualTo(edges[i][j]);
                 }
             }
         }
@@ -123,12 +126,12 @@ class GraphTest {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (i != j) {
-                    assertEquals(expected[i][j], graph.getEdgeWeights()[i][j]);
+                    assertThat(graph.getEdgeWeights()[i][j]).isEqualTo(expected[i][j]);
                 }
             }
         }
 
-        assertEquals(3, mergeVerticesInfo1.getCost() + mergeVerticesInfo2.getCost());
+        assertThat(mergeVerticesInfo1.getCost() + mergeVerticesInfo2.getCost()).isEqualTo(3);
     }
 
     @Test
@@ -152,7 +155,7 @@ class GraphTest {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
                 if (i != j) {
-                    assertEquals(edges[i][j], graph.getEdgeWeights()[i][j]);
+                    assertThat(graph.getEdgeWeights()[i][j]).isEqualTo(edges[i][j]);
                 }
             }
         }
@@ -177,7 +180,7 @@ class GraphTest {
         int[] expected = {0, 6, 2, 4};
 
         for (int i = 0; i < 4; i++) {
-            assertEquals(expected[i], graph.getNeighborhoodWeights()[i]);
+            assertThat(graph.getNeighborhoodWeights()[i]).isEqualTo(expected[i]);
         }
     }
 
@@ -200,7 +203,7 @@ class GraphTest {
         int[] expected = {1, 15, 4, 12};
 
         for (int i = 0; i < 4; i++) {
-            assertEquals(expected[i], graph.getNeighborhoodWeights()[i]);
+            assertThat(graph.getNeighborhoodWeights()[i]).isEqualTo(expected[i]);
         }
     }
 
@@ -223,7 +226,7 @@ class GraphTest {
         int[] expected = {1, 6, 4, 13, 12};
 
         for (int i = 0; i < 5; i++) {
-            assertEquals(expected[i], graph.getNeighborhoodWeights()[i]);
+            assertThat(graph.getNeighborhoodWeights()[i]).isEqualTo(expected[i]);
         }
     }
 
@@ -246,7 +249,7 @@ class GraphTest {
         int[] expected = {2, 7, 3, 4};
 
         for (int i = 0; i < 4; i++) {
-            assertEquals(expected[i], graph.getAbsoluteNeighborhoodWeights()[i]);
+            assertThat(graph.getAbsoluteNeighborhoodWeights()[i]).isEqualTo(expected[i]);
         }
     }
 
@@ -269,7 +272,7 @@ class GraphTest {
         int[] expected = {4, 17, 7, 14};
 
         for (int i = 0; i < 4; i++) {
-            assertEquals(expected[i], graph.getAbsoluteNeighborhoodWeights()[i]);
+            assertThat(graph.getAbsoluteNeighborhoodWeights()[i]).isEqualTo(expected[i]);
         }
     }
 
@@ -292,8 +295,46 @@ class GraphTest {
         int[] expected = {4, 7, 7, 14, 14};
 
         for (int i = 0; i < 5; i++) {
-            assertEquals(expected[i], graph.getAbsoluteNeighborhoodWeights()[i]);
+            assertThat(graph.getAbsoluteNeighborhoodWeights()[i]).isEqualTo(expected[i]);
         }
+    }
+
+    @Test
+    void testGetConnectedComponents() {
+        Graph graph = new Graph(7);
+        int[][] edges = {
+                {0, 1, 1, -1, -1, -1, -1},
+                {1, 0, -1, -1, -1, -1, -1},
+                {1, -1, 0, -1, -1, -1, -1},
+                {-1, -1, -1, 0, 1, -1, 1},
+                {-1, -1, -1, 1, 0, -1, -1},
+                {-1, -1, -1, -1, -1, 0, 1},
+                {-1, -1, -1, 1, -1, 1, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+
+        Set<Set<Integer>> connectedComponents = graph.getConnectedComponents();
+
+        assertThat(connectedComponents).hasSize(2);
+    }
+
+    @Test
+    void getTransitiveClosureCost() {
+        Graph graph = new Graph(7);
+        int[][] edges = {
+                {0, 1, 1, -1, -1, -1, -1},
+                {1, 0, -1, -1, -1, -1, -1},
+                {1, -1, 0, -1, -1, -1, -1},
+                {-1, -1, -1, 0, 1, -3, 1},
+                {-1, -1, -1, 1, 0, -1, -1},
+                {-1, -1, -1, -3, -1, 0, 1},
+                {-1, -1, -1, 1, -1, 1, 0}
+        };
+        graph.setEdgeWeights(edges.clone());
+        graph.computeEdgeExists();
+
+        assertThat(graph.getTransitiveClosureCost()).isEqualTo(6);
     }
 
     private int[][] deepCopy(int[][] matrix) {
@@ -308,6 +349,5 @@ class GraphTest {
         }
         return copy;
     }
-
 
 }

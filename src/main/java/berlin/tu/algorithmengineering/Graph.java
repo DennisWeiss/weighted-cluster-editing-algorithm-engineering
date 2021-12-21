@@ -272,6 +272,20 @@ public class Graph {
         return graph;
     }
 
+    public Graph getSubGraph(List<Integer> subGraphIndices) {
+        Graph graph = new Graph(subGraphIndices.size());
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = 0; j < subGraphIndices.size(); j++) {
+                graph.getEdgeWeights()[i][j] = edgeWeights[subGraphIndices.get(i)][subGraphIndices.get(j)];
+                graph.getEdgeExists()[i][j] = edgeExists[subGraphIndices.get(i)][subGraphIndices.get(j)];
+            }
+        }
+        graph.computeNeighborhoodWeights();
+        graph.computeAbsoluteNeighborhoodWeights();
+
+        return graph;
+    }
+
     public int getTotalAbsoluteWeight(P3 p3) {
         return edgeWeights[p3.getU()][p3.getV()] + edgeWeights[p3.getV()][p3.getW()] - edgeWeights[p3.getU()][p3.getW()];
     }
@@ -369,6 +383,65 @@ public class Graph {
             }
         }
         return edgeExists;
+    }
+
+    public Set<Set<Integer>> getConnectedComponents() {
+        Set<Integer> visitedVertices = new HashSet<>();
+        Set<Set<Integer>> connectedComponents = new HashSet<>();
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (!visitedVertices.contains(i)) {
+                Set<Integer> connectedComponent = getConnectedComponent(i);
+                visitedVertices.addAll(connectedComponent);
+                connectedComponents.add(connectedComponent);
+            }
+        }
+        return connectedComponents;
+    }
+
+    public Set<Integer> getConnectedComponent(int vertex) {
+        return getConnectedComponent(vertex, new HashSet<>());
+    }
+
+    private Set<Integer> getConnectedComponent(int vertex, Set<Integer> connectedComponent) {
+        connectedComponent.add(vertex);
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (vertex != i && edgeExists[vertex][i] && !connectedComponent.contains(i)) {
+                connectedComponent.addAll(getConnectedComponent(i, connectedComponent));
+            }
+        }
+        return connectedComponent;
+    }
+
+    public int getTransitiveClosureCost() {
+        if (numberOfVertices < 3) {
+            return 0;
+        }
+        int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndex();
+        int cost = 0;
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = i+1; j < numberOfVertices; j++) {
+                if (!edgeExists[i][j] && vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j]) {
+                    cost -= edgeWeights[i][j];
+                }
+            }
+        }
+        return cost;
+    }
+
+    private int[] getVertexToConnectedComponentIndex() {
+        return getVertexToConnectedComponentIndex(getConnectedComponents(), numberOfVertices);
+    }
+
+    public static int[] getVertexToConnectedComponentIndex(Set<Set<Integer>> connectedComponents, int numberOfVertices) {
+        int index = 0;
+        int[] vertexToConnectedComponentIndex = new int[numberOfVertices];
+        for (Set<Integer> connectedComponent : connectedComponents) {
+            for (Integer vertex : connectedComponent) {
+                vertexToConnectedComponentIndex[vertex] = index;
+            }
+            index++;
+        }
+        return vertexToConnectedComponentIndex;
     }
 
     public int getNumberOfVertices() {

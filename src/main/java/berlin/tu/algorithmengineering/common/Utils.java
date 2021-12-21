@@ -4,8 +4,7 @@ import berlin.tu.algorithmengineering.Graph;
 import berlin.tu.algorithmengineering.model.MergeVerticesInfo;
 import com.google.ortools.sat.CpModel;
 
-import java.util.Scanner;
-import java.util.Stack;
+import java.util.*;
 
 public class Utils {
 
