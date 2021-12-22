@@ -327,6 +327,24 @@ public class Graph {
         return p3List;
     }
 
+    public List<P3> findAllP3WithEdge(int u, int v) {
+        List<P3> p3List = new ArrayList<>();
+        for (int w = 0; w < numberOfVertices; w++) {
+            if (u != w && v != w) {
+                if (edgeExists[u][v]) {
+                    if (edgeExists[u][w] && !edgeExists[v][w]) {
+                        p3List.add(new P3(v, u, w));
+                    } else if (!edgeExists[u][w] && edgeExists[v][w]) {
+                        p3List.add(new P3(u, v, w));
+                    }
+                } else if (edgeExists[u][w] && edgeExists[v][w]) {
+                    p3List.add(new P3(u, w, v));
+                }
+            }
+        }
+        return p3List;
+    }
+
     public P3 findBiggestWeightP3() {
         int biggestTotalAbsoluteWeight = Integer.MIN_VALUE;
         P3 biggestTotalAbsoluteWeightP3 = null;
