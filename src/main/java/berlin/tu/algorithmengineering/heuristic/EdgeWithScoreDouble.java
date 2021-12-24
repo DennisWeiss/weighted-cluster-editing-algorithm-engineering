@@ -2,12 +2,12 @@ package berlin.tu.algorithmengineering.heuristic;
 
 import berlin.tu.algorithmengineering.model.Edge;
 
-public class EdgeWithScore implements Comparable {
+public class EdgeWithScoreDouble implements Comparable {
 
     private Edge edge;
-    private int score;
+    private double score;
 
-    public EdgeWithScore(Edge edge, int score) {
+    public EdgeWithScoreDouble(Edge edge, double score) {
         this.edge = edge;
         this.score = score;
     }
@@ -20,18 +20,17 @@ public class EdgeWithScore implements Comparable {
         this.edge = edge;
     }
 
-    public int getScore() {
+    public double getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(double score) {
         this.score = score;
     }
 
-
     @Override
     public int compareTo(Object o) {
-        EdgeWithScore other = (EdgeWithScore) o;
-        return score - other.getScore();
+        EdgeWithScoreDouble other = (EdgeWithScoreDouble) o;
+        return (int) Math.signum(score - other.getScore());
     }
 }

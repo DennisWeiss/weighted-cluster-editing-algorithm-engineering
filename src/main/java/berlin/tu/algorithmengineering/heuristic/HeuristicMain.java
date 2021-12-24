@@ -8,10 +8,12 @@ import java.util.Set;
 
 public class HeuristicMain {
 
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
 
     public static void main(String[] args) {
         Graph graph = Utils.readGraphFromConsoleInput();
+
+//        Heuristics.getGreedyHeuristic2(graph.copy());
 
         EdgeDeletionsWithCost edgeDeletionsWithCost = Heuristics.getGreedyHeuristic1(graph.copy());
 

@@ -9,8 +9,8 @@ import java.util.*;
 public class Utils {
 
     public static boolean[][] reconstructMergeForResultEdgeExists(boolean[][] resultEdgeExists, Graph graph, MergeVerticesInfo mergeVerticesInfo) {
-        boolean[][] resultEdgeExistsCopy = copy(resultEdgeExists, resultEdgeExists.length);
-        boolean[][] newResultEdgeExists = new boolean[resultEdgeExists.length][resultEdgeExists.length];
+        boolean[][] resultEdgeExistsCopy = copy(resultEdgeExists, graph.getNumberOfVertices() + 1);
+        boolean[][] newResultEdgeExists = new boolean[graph.getNumberOfVertices() + 1][graph.getNumberOfVertices() + 1];
 
         // Just for convenience
         if (graph.getNumberOfVertices() != mergeVerticesInfo.getSecondVertex()) {

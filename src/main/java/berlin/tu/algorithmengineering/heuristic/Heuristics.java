@@ -4,10 +4,11 @@ import berlin.tu.algorithmengineering.Graph;
 import berlin.tu.algorithmengineering.Main;
 import berlin.tu.algorithmengineering.model.Edge;
 import berlin.tu.algorithmengineering.model.P3;
-import ilog.concert.IloException;
-import ilog.concert.IloLinearNumExpr;
-import ilog.concert.IloNumVar;
-import ilog.cplex.IloCplex;
+import com.google.ortools.Loader;
+import com.google.ortools.linearsolver.MPConstraint;
+import com.google.ortools.linearsolver.MPObjective;
+import com.google.ortools.linearsolver.MPSolver;
+import com.google.ortools.linearsolver.MPVariable;
 
 import java.util.*;
 
@@ -20,19 +21,19 @@ public class Heuristics {
             return edgeDeletionsWithCost;
         }
         int[][] edgeScores = scoreEdges(graph);
-        PriorityQueue<EdgeWithScore> edgesWithScore = new PriorityQueue<>(Collections.reverseOrder());
+        PriorityQueue<EdgeWithScoreInt> edgesWithScore = new PriorityQueue<>(Collections.reverseOrder());
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
                 if (graph.getEdgeExists()[i][j]) {
-                    edgesWithScore.add(new EdgeWithScore(new Edge(i, j), edgeScores[i][j]));
+                    edgesWithScore.add(new EdgeWithScoreInt(new Edge(i, j), edgeScores[i][j]));
                 }
             }
         }
 
         Set<Set<Integer>> connectedComponents;
 
-        while ((connectedComponents = graph.getConnectedComponents()).size() < 2) {
-            EdgeWithScore edgeToRemove = edgesWithScore.poll();
+        while ((connectedComponents = graph.getConnectedComponents()).size() < 1.2) {
+            EdgeWithScoreInt edgeToRemove = edgesWithScore.poll();
             edgeDeletionsWithCost.getEdgeDeletions().add(edgeToRemove.getEdge());
             edgeDeletionsWithCost.addCost(graph.getEdgeWeights()[edgeToRemove.getEdge().getA()][edgeToRemove.getEdge().getB()]);
             graph.flipEdge(edgeToRemove.getEdge().getA(), edgeToRemove.getEdge().getB());
@@ -80,6 +81,132 @@ public class Heuristics {
         return edgeDeletionsWithCost;
     }
 
+    public static boolean[][] getGreedyHeuristic2(Graph graph) {
+        int iter = 50;
+
+        boolean[][] resultEdgeExistsWithMinCost = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+        int minCost = getCost(graph, resultEdgeExistsWithMinCost);
+
+        for (int n = 5; n < 30; n += 5) {
+            double[][] edgeScores = scoreEdgesLp(graph,n, iter);
+            int maxScore = getMaxScore(edgeScores);
+
+            for (int score = maxScore; score > 0; score--) {
+                boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScore(edgeScores, score));
+                int cost = getCost(graph, resultEdgeExists);
+                if (cost < minCost) {
+                    minCost = cost;
+                    resultEdgeExistsWithMinCost = resultEdgeExists;
+                }
+            }
+        }
+
+        return resultEdgeExistsWithMinCost;
+    }
+
+    public static boolean[][] getGreedyHeuristic2Randomized(Graph graph) {
+        int iter = 50;
+
+        boolean[][] resultEdgeExistsWithMinCost = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+        int minCost = getCost(graph, resultEdgeExistsWithMinCost);
+
+        double[][] edgeScores = scoreEdgesLp(graph, 20, iter);
+        int maxScore = getMaxScore(edgeScores);
+
+        for (double p = 0.0; p < 1; p += 1.0 / 1000.0) {
+            boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+                for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
+                    resultEdgeExists[i][j] = Math.random() < p * edgeScores[i][j] / maxScore;
+                }
+            }
+            resultEdgeExists = getTransitiveClosureOfResultEdgeExists(resultEdgeExists);
+            int cost = getCost(graph, resultEdgeExists);
+            if (cost < minCost) {
+                minCost = cost;
+                resultEdgeExistsWithMinCost = resultEdgeExists;
+            }
+        }
+
+        return resultEdgeExistsWithMinCost;
+    }
+
+    private static boolean[][] getResultEdgeExistsWithMinScore(double[][] edgeScores, int minScore) {
+        boolean[][] resultEdgeExists = new boolean[edgeScores.length][edgeScores.length];
+        for (int i = 0; i < edgeScores.length; i++) {
+            for (int j = i+1; j < edgeScores.length; j++) {
+                resultEdgeExists[i][j] = edgeScores[i][j] >= minScore;
+            }
+        }
+        return resultEdgeExists;
+    }
+
+    private static int getMaxScore(double[][] scores) {
+        int maxScore = Integer.MIN_VALUE;
+        for (int i = 0; i < scores.length; i++) {
+            for (int j = i+1; j < scores[i].length; j++) {
+                maxScore = (int) Math.max(maxScore, scores[i][j]);
+            }
+        }
+        return maxScore;
+    }
+
+    private static boolean[][] getTransitiveClosureOfResultEdgeExists(boolean[][] resultEdgeExists) {
+        if (resultEdgeExists.length < 3) {
+            return resultEdgeExists;
+        }
+        int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndexOfResultEdgeExists(resultEdgeExists);
+        for (int i = 0; i < resultEdgeExists.length; i++) {
+            for (int j = i+1; j < resultEdgeExists.length; j++) {
+                resultEdgeExists[i][j] =  vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j];
+            }
+        }
+        return resultEdgeExists;
+    }
+
+    private static Set<Set<Integer>> getConnectedComponentsOfResultEdgeExists(boolean[][] resultEdgeExists) {
+        Set<Integer> visitedVertices = new HashSet<>();
+        Set<Set<Integer>> connectedComponents = new HashSet<>();
+        for (int i = 0; i < resultEdgeExists.length; i++) {
+            if (!visitedVertices.contains(i)) {
+                Set<Integer> connectedComponent = getConnectedComponentOfResultEdgeExists(i, resultEdgeExists);
+                visitedVertices.addAll(connectedComponent);
+                connectedComponents.add(connectedComponent);
+            }
+        }
+        return connectedComponents;
+    }
+
+    public static Set<Integer> getConnectedComponentOfResultEdgeExists(int vertex, boolean[][] resultEdgeExists) {
+        return getConnectedComponentOfResultEdgeExists(vertex, new HashSet<>(), resultEdgeExists);
+    }
+
+    private static Set<Integer> getConnectedComponentOfResultEdgeExists(int vertex, Set<Integer> connectedComponent, boolean[][] resultEdgeExists) {
+        connectedComponent.add(vertex);
+        for (int i = 0; i < resultEdgeExists.length; i++) {
+            if (vertex != i && resultEdgeExists[vertex][i] && !connectedComponent.contains(i)) {
+                connectedComponent.addAll(getConnectedComponentOfResultEdgeExists(i, connectedComponent, resultEdgeExists));
+            }
+        }
+        return connectedComponent;
+    }
+
+    private static int[] getVertexToConnectedComponentIndexOfResultEdgeExists(boolean[][] resultEdgeExists) {
+        return Graph.getVertexToConnectedComponentIndex(getConnectedComponentsOfResultEdgeExists(resultEdgeExists), resultEdgeExists.length);
+    }
+
+    private static int getCost(Graph graph, boolean[][] resultEdgeExists) {
+        int cost = 0;
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+                if (graph.getEdgeExists()[i][j] != resultEdgeExists[i][j]) {
+                    cost += Math.abs(graph.getEdgeWeights()[i][j]);
+                }
+            }
+        }
+        return cost;
+    }
+
     private static int[][] scoreEdges(Graph graph) {
         int[][] edgeScores = new int[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
@@ -119,63 +246,79 @@ public class Heuristics {
         return lowerBound;
     }
 
-    private static int[][] scoreEdgesLp(Graph graph) {
-        try {
-            IloCplex cplex = new IloCplex();
+    private static double[][] scoreEdgesLp(Graph graph, int n, int iter) {
+        double[][] edgesScores = new double[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
 
-            // To not output logs to console
-            cplex.setOut(null);
+        List<Integer> indices = getIndexList(graph.getNumberOfVertices());
 
-            IloNumVar[][] x = new IloNumVar[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
-
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
-                    x[i][j] = cplex.intVar(0, 1);
-                }
+        for (int i = 0; i < iter; i++) {
+            Collections.shuffle(indices);
+            for (int j = 0; j < graph.getNumberOfVertices(); j += n) {
+                addScoresLp(graph, indices.subList(j, Math.min(j + n, graph.getNumberOfVertices())), edgesScores);
             }
+        }
 
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                for (int j = 0; j < graph.getNumberOfVertices(); j++) {
-                    for (int k = 0; k < graph.getNumberOfVertices(); k++) {
-                        if (i != j && j != k && i != k) {
-                            IloLinearNumExpr constraint = cplex.linearNumExpr();
-                            constraint.addTerm(1, x[Math.min(i, j)][Math.max(i, j)]);
-                            constraint.addTerm(1, x[Math.min(j, k)][Math.max(j, k)]);
-                            constraint.addTerm(-1, x[Math.min(i, k)][Math.max(i, k)]);
-                            cplex.addGe(1, constraint);
-                        }
+        return edgesScores;
+    }
+
+    private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
+        Loader.loadNativeLibraries();
+        MPSolver mpSolver = MPSolver.createSolver("GLOP");
+
+        MPVariable[][] x = new MPVariable[subGraphIndices.size()][subGraphIndices.size()];
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = i+1; j < subGraphIndices.size(); j++) {
+                x[i][j] = mpSolver.makeNumVar(0.0, 1.0, String.format("%d %d", subGraphIndices.get(i), subGraphIndices.get(j)));
+            }
+        }
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = 0; j < subGraphIndices.size(); j++) {
+                for (int k = 0; k < subGraphIndices.size(); k++) {
+                    if (i != j && j != k && i != k) {
+                        MPConstraint constraint = mpSolver.makeConstraint(Double.NEGATIVE_INFINITY, 1.0);
+                        constraint.setCoefficient(x[Math.min(i, j)][Math.max(i, j)], 1.0);
+                        constraint.setCoefficient(x[Math.min(j, k)][Math.max(j, k)], 1.0);
+                        constraint.setCoefficient(x[Math.min(i, k)][Math.max(i, k)], -1.0);
                     }
                 }
             }
-
-            IloLinearNumExpr objective = cplex.linearNumExpr();
-            int constant = 0;
-
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
-                    objective.addTerm(-graph.getEdgeWeights()[i][j], x[i][j]);
-                    constant += Math.max(graph.getEdgeWeights()[i][j], 0);
-                }
-            }
-
-            objective.setConstant(constant);
-
-            cplex.addMinimize(objective);
-
-            cplex.solve();
-
-            System.out.println(cplex.getObjValue());
-            for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
-                    System.out.printf("%d %d: %f\n", i, j, cplex.getValue(x[i][j]));
-                }
-            }
-            System.out.printf("");
-        } catch (IloException e) {
-            e.printStackTrace();
         }
 
-        return new int[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+        MPObjective objective = mpSolver.objective();
+        double constant = 0;
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = i + 1; j < subGraphIndices.size(); j++) {
+                objective.setCoefficient(x[i][j], -graph.getEdgeWeights()[subGraphIndices.get(i)][subGraphIndices.get(j)]);
+                constant += Math.max(graph.getEdgeWeights()[subGraphIndices.get(i)][subGraphIndices.get(j)], 0.0);
+            }
+        }
+
+        objective.setOffset(constant);
+
+        objective.setMinimization();
+
+        MPSolver.ResultStatus resultStatus = mpSolver.solve();
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = i+1; j < subGraphIndices.size(); j++) {
+                Integer u = subGraphIndices.get(i);
+                Integer v = subGraphIndices.get(j);
+                double value = x[i][j].solutionValue();
+                edgeScores[u][v] += value;
+                edgeScores[v][u] += value;
+            }
+        }
+    }
+
+    private static List<Integer> getIndexList(int n) {
+        List<Integer> indexList = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            indexList.add(i);
+        }
+        return indexList;
     }
 
 
