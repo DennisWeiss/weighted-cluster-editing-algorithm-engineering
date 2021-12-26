@@ -32,7 +32,7 @@ public class Heuristics {
 
         Set<Set<Integer>> connectedComponents;
 
-        while ((connectedComponents = graph.getConnectedComponents()).size() < 1.2) {
+        while ((connectedComponents = graph.getConnectedComponents()).size() < 2) {
             EdgeWithScoreInt edgeToRemove = edgesWithScore.poll();
             edgeDeletionsWithCost.getEdgeDeletions().add(edgeToRemove.getEdge());
             edgeDeletionsWithCost.addCost(graph.getEdgeWeights()[edgeToRemove.getEdge().getA()][edgeToRemove.getEdge().getB()]);
@@ -81,18 +81,119 @@ public class Heuristics {
         return edgeDeletionsWithCost;
     }
 
+
+    public static EdgeDeletionsWithCost getGreedyHeuristicLp(Graph graph) {
+        EdgeDeletionsWithCost edgeDeletionsWithCost = new EdgeDeletionsWithCost(new HashSet<>(), 0);
+        int transitiveClosureCost = graph.getTransitiveClosureCost();
+        if (transitiveClosureCost == 0) {
+            return edgeDeletionsWithCost;
+        }
+
+        double[][] edgeScores = scoreEdgesLp(graph);
+
+        PriorityQueue<EdgeWithScoreDouble> edgesWithScore = new PriorityQueue<>(Collections.reverseOrder());
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
+                if (graph.getEdgeExists()[i][j]) {
+                    edgesWithScore.add(new EdgeWithScoreDouble(new Edge(i, j), edgeScores[i][j]));
+                }
+            }
+        }
+
+        Set<Set<Integer>> connectedComponents;
+
+        while ((connectedComponents = graph.getConnectedComponents()).size() < 2) {
+            EdgeWithScoreDouble edgeToRemove = edgesWithScore.poll();
+            edgeDeletionsWithCost.getEdgeDeletions().add(edgeToRemove.getEdge());
+            edgeDeletionsWithCost.addCost(graph.getEdgeWeights()[edgeToRemove.getEdge().getA()][edgeToRemove.getEdge().getB()]);
+            graph.flipEdge(edgeToRemove.getEdge().getA(), edgeToRemove.getEdge().getB());
+        }
+
+        int[] vertexToConnectedComponentIndex = Graph.getVertexToConnectedComponentIndex(connectedComponents, graph.getNumberOfVertices());
+        for (Edge edge : new ArrayList<>(edgeDeletionsWithCost.getEdgeDeletions())) {
+            if (vertexToConnectedComponentIndex[edge.getA()] == vertexToConnectedComponentIndex[edge.getB()]) {
+                edgeDeletionsWithCost.getEdgeDeletions().remove(edge);
+                graph.flipEdge(edge.getA(), edge.getB());
+                edgeDeletionsWithCost.addCost(-graph.getEdgeWeights()[edge.getA()][edge.getB()]);
+            }
+        }
+
+        if (edgeDeletionsWithCost.getCost() >= transitiveClosureCost) {
+            return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
+        }
+
+        Iterator<Set<Integer>> connectedComponentsIterator = connectedComponents.iterator();
+        ArrayList<Integer> subGraphIndices1 = new ArrayList<>(connectedComponentsIterator.next());
+        Graph subGraph = graph.getSubGraph(subGraphIndices1);
+
+        EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph1 = getGreedyHeuristicLp(subGraph);
+        if (edgeDeletionsWithCost.getCost() + edgeDeletionsWithCostOfSubGraph1.getCost() >= transitiveClosureCost) {
+            return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
+        }
+
+        ArrayList<Integer> subGraphIndices2 = new ArrayList<>(connectedComponentsIterator.next());
+        subGraph = graph.getSubGraph(subGraphIndices2);
+
+        EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph2 = getGreedyHeuristicLp(subGraph);
+        if (edgeDeletionsWithCost.getCost() + edgeDeletionsWithCostOfSubGraph1.getCost()
+                + edgeDeletionsWithCostOfSubGraph2.getCost() >= transitiveClosureCost) {
+            return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
+        }
+
+        for (Edge edge : edgeDeletionsWithCostOfSubGraph1.getEdgeDeletions()) {
+            edgeDeletionsWithCost.getEdgeDeletions().add(new Edge(subGraphIndices1.get(edge.getA()), subGraphIndices1.get(edge.getB())));
+        }
+        for (Edge edge : edgeDeletionsWithCostOfSubGraph2.getEdgeDeletions()) {
+            edgeDeletionsWithCost.getEdgeDeletions().add(new Edge(subGraphIndices2.get(edge.getA()), subGraphIndices2.get(edge.getB())));
+        }
+        edgeDeletionsWithCost.addCost(edgeDeletionsWithCostOfSubGraph1.getCost());
+        edgeDeletionsWithCost.addCost(edgeDeletionsWithCostOfSubGraph2.getCost());
+        return edgeDeletionsWithCost;
+    }
+
+    private static double[][] getEdgesScoresOfSubGraph(double[][] edgeScores, List<Integer> subGraphIndices) {
+        double[][] edgesScoresOfSubGraph = new double[subGraphIndices.size()][subGraphIndices.size()];
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = i+1; j < subGraphIndices.size(); j++) {
+                edgesScoresOfSubGraph[i][j] = edgeScores[subGraphIndices.get(i)][subGraphIndices.get(j)];
+            }
+        }
+        return edgesScoresOfSubGraph;
+    }
+
     public static boolean[][] getGreedyHeuristic2(Graph graph) {
-        int iter = 50;
+        int iter = 40;
 
         boolean[][] resultEdgeExistsWithMinCost = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         int minCost = getCost(graph, resultEdgeExistsWithMinCost);
 
-        for (int n = 5; n < 30; n += 5) {
-            double[][] edgeScores = scoreEdgesLp(graph,n, iter);
-            int maxScore = getMaxScore(edgeScores);
+        double[][] edgeScores = connectivityHeuristicOfEdges(graph, (int) Math.max(2 * Math.pow(graph.getNumberOfVertices(), 0.5), 5), iter);
+        int maxScore = getMaxScore(edgeScores);
 
-            for (int score = maxScore; score > 0; score--) {
-                boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScore(edgeScores, score));
+        for (int score = maxScore; score > 0; score--) {
+            boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScore(edgeScores, score));
+            int cost = getCost(graph, resultEdgeExists);
+            if (cost < minCost) {
+                minCost = cost;
+                resultEdgeExistsWithMinCost = resultEdgeExists;
+            }
+        }
+
+        return resultEdgeExistsWithMinCost;
+    }
+
+    public static boolean[][] getGreedyHeuristic2Randomized2(Graph graph) {
+        int iter = 40;
+
+        boolean[][] resultEdgeExistsWithMinCost = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+        int minCost = getCost(graph, resultEdgeExistsWithMinCost);
+
+        double[][] edgeScores = connectivityHeuristicOfEdges(graph, (int) Math.max(2 * Math.pow(graph.getNumberOfVertices(), 0.5), 5), iter);
+        int maxScore = getMaxScore(edgeScores);
+
+        for (int score = maxScore; score > 0; score--) {
+            for (double p = 0.2; p <= 1; p += 0.2) {
+                boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
                 int cost = getCost(graph, resultEdgeExists);
                 if (cost < minCost) {
                     minCost = cost;
@@ -110,7 +211,7 @@ public class Heuristics {
         boolean[][] resultEdgeExistsWithMinCost = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         int minCost = getCost(graph, resultEdgeExistsWithMinCost);
 
-        double[][] edgeScores = scoreEdgesLp(graph, 20, iter);
+        double[][] edgeScores = connectivityHeuristicOfEdges(graph, 20, iter);
         int maxScore = getMaxScore(edgeScores);
 
         for (double p = 0.0; p < 1; p += 1.0 / 1000.0) {
@@ -136,6 +237,18 @@ public class Heuristics {
         for (int i = 0; i < edgeScores.length; i++) {
             for (int j = i+1; j < edgeScores.length; j++) {
                 resultEdgeExists[i][j] = edgeScores[i][j] >= minScore;
+            }
+        }
+        return resultEdgeExists;
+    }
+
+    private static boolean[][] getResultEdgeExistsWithMinScoreRandomized(double[][] edgeScores, int minScore, double p) {
+        boolean[][] resultEdgeExists = new boolean[edgeScores.length][edgeScores.length];
+        for (int i = 0; i < edgeScores.length; i++) {
+            for (int j = i+1; j < edgeScores.length; j++) {
+                if (Math.random() < p) {
+                    resultEdgeExists[i][j] = edgeScores[i][j] >= minScore;
+                }
             }
         }
         return resultEdgeExists;
@@ -246,19 +359,34 @@ public class Heuristics {
         return lowerBound;
     }
 
-    private static double[][] scoreEdgesLp(Graph graph, int n, int iter) {
-        double[][] edgesScores = new double[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+    private static double[][] scoreEdgesLp(Graph graph) {
+        int iter = 20;
+
+        double[][] connectivityHeuristics = connectivityHeuristicOfEdges(graph, (int) Math.max(0.2 * Math.pow(graph.getNumberOfVertices(), 2.0/3.0), 5), iter);
+        double[][] edgeScores = new double[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+                edgeScores[i][j] = graph.getEdgeExists()[i][j] ? iter - connectivityHeuristics[i][j] : 0;
+            }
+        }
+
+        return edgeScores;
+    }
+
+    private static double[][] connectivityHeuristicOfEdges(Graph graph, int n, int iter) {
+        double[][] connectivityHeuristics = new double[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
 
         List<Integer> indices = getIndexList(graph.getNumberOfVertices());
 
         for (int i = 0; i < iter; i++) {
             Collections.shuffle(indices);
             for (int j = 0; j < graph.getNumberOfVertices(); j += n) {
-                addScoresLp(graph, indices.subList(j, Math.min(j + n, graph.getNumberOfVertices())), edgesScores);
+                addScoresLp(graph, indices.subList(j, Math.min(j + n, graph.getNumberOfVertices())), connectivityHeuristics);
             }
         }
 
-        return edgesScores;
+        return connectivityHeuristics;
     }
 
     private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
