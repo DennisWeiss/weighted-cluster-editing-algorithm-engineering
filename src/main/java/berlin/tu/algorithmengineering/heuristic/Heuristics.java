@@ -14,6 +14,9 @@ import java.util.*;
 
 public class Heuristics {
 
+    public static double optimumP = 0;
+    public static int optimumScore = 0;
+
     public static EdgeDeletionsWithCost getGreedyHeuristic1(Graph graph) {
         EdgeDeletionsWithCost edgeDeletionsWithCost = new EdgeDeletionsWithCost(new HashSet<>(), 0);
         int transitiveClosureCost = graph.getTransitiveClosureCost();
@@ -191,13 +194,19 @@ public class Heuristics {
         double[][] edgeScores = connectivityHeuristicOfEdges(graph, (int) Math.max(2 * Math.pow(graph.getNumberOfVertices(), 0.5), 5), iter);
         int maxScore = getMaxScore(edgeScores);
 
+        loopScores:
         for (int score = maxScore; score > 0; score--) {
-            for (double p = 0.2; p <= 1; p += 0.2) {
+            for (double p = 0.6; p <= 1; p += 0.1) {
                 boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
                 int cost = getCost(graph, resultEdgeExists);
                 if (cost < minCost) {
                     minCost = cost;
                     resultEdgeExistsWithMinCost = resultEdgeExists;
+                    optimumP = p;
+                    optimumScore = score;
+                }
+                if (getConnectedComponentOfResultEdgeExists(0, resultEdgeExists).size() == graph.getNumberOfVertices()) {
+                    break loopScores;
                 }
             }
         }
@@ -218,7 +227,9 @@ public class Heuristics {
             boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
             for (int i = 0; i < graph.getNumberOfVertices(); i++) {
                 for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
-                    resultEdgeExists[i][j] = Math.random() < p * edgeScores[i][j] / maxScore;
+                    boolean edgeExists = Math.random() < p * edgeScores[i][j] / maxScore;
+                    resultEdgeExists[i][j] = edgeExists;
+                    resultEdgeExists[j][i] = edgeExists;
                 }
             }
             resultEdgeExists = getTransitiveClosureOfResultEdgeExists(resultEdgeExists);
@@ -247,7 +258,9 @@ public class Heuristics {
         for (int i = 0; i < edgeScores.length; i++) {
             for (int j = i+1; j < edgeScores.length; j++) {
                 if (Math.random() < p) {
-                    resultEdgeExists[i][j] = edgeScores[i][j] >= minScore;
+                    boolean edgeExists = edgeScores[i][j] >= minScore;
+                    resultEdgeExists[i][j] = edgeExists;
+                    resultEdgeExists[j][i] = edgeExists;
                 }
             }
         }
@@ -271,7 +284,9 @@ public class Heuristics {
         int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndexOfResultEdgeExists(resultEdgeExists);
         for (int i = 0; i < resultEdgeExists.length; i++) {
             for (int j = i+1; j < resultEdgeExists.length; j++) {
-                resultEdgeExists[i][j] =  vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j];
+                boolean edgeExists = vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j];
+                resultEdgeExists[i][j] = edgeExists;
+                resultEdgeExists[j][i] = edgeExists;
             }
         }
         return resultEdgeExists;

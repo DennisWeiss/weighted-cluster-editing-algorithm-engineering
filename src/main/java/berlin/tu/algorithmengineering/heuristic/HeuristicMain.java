@@ -49,6 +49,8 @@ public class HeuristicMain {
 
         boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy());
 
+        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists);
+
 //        boolean[][] reconstructedResultsEdgeExists = Utils.copy(resultEdgeExists, resultEdgeExists.length);
 //        while (!mergeVerticesInfoStack.empty()) {
 //            MergeVerticesInfo mergeVerticesInfo = mergeVerticesInfoStack.pop();
@@ -59,5 +61,7 @@ public class HeuristicMain {
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
         Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+
+        System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
     }
 }

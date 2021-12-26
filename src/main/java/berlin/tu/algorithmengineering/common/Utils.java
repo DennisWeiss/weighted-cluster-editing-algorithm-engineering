@@ -128,4 +128,14 @@ public class Utils {
         return graph;
     }
 
+    /**
+     * Returns random integer over uniform distribution
+     * @param from inclusive
+     * @param to exclusive
+     * @return random integer
+     */
+    public static int randInt(int from, int to) {
+        return (int) ((to - from) * Math.random() + from);
+    }
+
 }
