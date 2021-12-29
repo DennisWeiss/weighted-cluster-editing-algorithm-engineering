@@ -196,7 +196,7 @@ public class Heuristics {
 
         loopScores:
         for (int score = maxScore; score > 0; score--) {
-            for (double p = 0.6; p <= 1; p += 0.1) {
+            for (double p = 0.6; p <= 1; p += 0.05) {
                 boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
                 int cost = getCost(graph, resultEdgeExists);
                 if (cost < minCost) {

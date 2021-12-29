@@ -5,7 +5,7 @@ import berlin.tu.algorithmengineering.common.Utils;
 
 public class SimulatedAnnealing {
 
-    public static final int ITERATIONS = 5000;
+    public static final int ITERATIONS = 10_000;
     public static final double T = 1;
 
     public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists) {
@@ -16,9 +16,6 @@ public class SimulatedAnnealing {
             if (probabilityOfBetterSolution == 1 || probabilityOfBetterSolution > Math.random()) {
                 applyChange(resultEdgeExists, vertex, moveToVertex);
             }
-//            if (checkP3(resultEdgeExists)) {
-//                System.out.printf("P3 %d %d\n", vertex, moveToVertex);
-//            }
         }
     }
 
