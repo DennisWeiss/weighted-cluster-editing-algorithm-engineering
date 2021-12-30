@@ -1,4 +1,5 @@
-package berlin.tu.algorithmengineering.searchtree;
+package berlin.tu.algorithmengineering.kernel;
+
 
 import berlin.tu.algorithmengineering.common.DataReduction;
 import berlin.tu.algorithmengineering.common.Graph;
@@ -7,7 +8,7 @@ import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 import java.util.Scanner;
 import java.util.Stack;
 
-public class DataReductionMain {
+public class Main {
 
     public static final boolean DEBUG = false;
     public static final int MIN_CUT_COMPUTATION_TIMEOUT = 250;
