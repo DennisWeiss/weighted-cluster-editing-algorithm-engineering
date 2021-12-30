@@ -4,7 +4,11 @@ package berlin.tu.algorithmengineering.heuristics;
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.model.Edge;
 import berlin.tu.algorithmengineering.common.model.P3;
-import berlin.tu.algorithmengineering.ilp.LinearProgramming;
+import com.google.ortools.Loader;
+import com.google.ortools.linearsolver.MPConstraint;
+import com.google.ortools.linearsolver.MPObjective;
+import com.google.ortools.linearsolver.MPSolver;
+import com.google.ortools.linearsolver.MPVariable;
 
 import java.util.*;
 
@@ -403,71 +407,56 @@ public class Heuristics {
     }
 
     private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
-        boolean[][] resultEdgeExists = LinearProgramming.getResultEdgeExists(graph);
+        Loader.loadNativeLibraries();
+        MPSolver mpSolver = MPSolver.createSolver("GLOP");
+
+        MPVariable[][] x = new MPVariable[subGraphIndices.size()][subGraphIndices.size()];
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = i+1; j < subGraphIndices.size(); j++) {
+                x[i][j] = mpSolver.makeNumVar(0.0, 1.0, String.format("%d %d", subGraphIndices.get(i), subGraphIndices.get(j)));
+            }
+        }
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = 0; j < subGraphIndices.size(); j++) {
+                for (int k = 0; k < subGraphIndices.size(); k++) {
+                    if (i != j && j != k && i != k) {
+                        MPConstraint constraint = mpSolver.makeConstraint(Double.NEGATIVE_INFINITY, 1.0);
+                        constraint.setCoefficient(x[Math.min(i, j)][Math.max(i, j)], 1.0);
+                        constraint.setCoefficient(x[Math.min(j, k)][Math.max(j, k)], 1.0);
+                        constraint.setCoefficient(x[Math.min(i, k)][Math.max(i, k)], -1.0);
+                    }
+                }
+            }
+        }
+
+        MPObjective objective = mpSolver.objective();
+        double constant = 0;
+
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = i + 1; j < subGraphIndices.size(); j++) {
+                objective.setCoefficient(x[i][j], -graph.getEdgeWeights()[subGraphIndices.get(i)][subGraphIndices.get(j)]);
+                constant += Math.max(graph.getEdgeWeights()[subGraphIndices.get(i)][subGraphIndices.get(j)], 0.0);
+            }
+        }
+
+        objective.setOffset(constant);
+
+        objective.setMinimization();
+
+        MPSolver.ResultStatus resultStatus = mpSolver.solve();
 
         for (int i = 0; i < subGraphIndices.size(); i++) {
             for (int j = i+1; j < subGraphIndices.size(); j++) {
                 Integer u = subGraphIndices.get(i);
                 Integer v = subGraphIndices.get(j);
-                if (resultEdgeExists[u][v]) {
-                    edgeScores[u][v]++;
-                    edgeScores[v][u]++;
-                }
+                double value = x[i][j].solutionValue();
+                edgeScores[u][v] += value;
+                edgeScores[v][u] += value;
             }
         }
     }
-
-//    private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
-//        Loader.loadNativeLibraries();
-//        MPSolver mpSolver = MPSolver.createSolver("GLOP");
-//
-//        MPVariable[][] x = new MPVariable[subGraphIndices.size()][subGraphIndices.size()];
-//
-//        for (int i = 0; i < subGraphIndices.size(); i++) {
-//            for (int j = i+1; j < subGraphIndices.size(); j++) {
-//                x[i][j] = mpSolver.makeNumVar(0.0, 1.0, String.format("%d %d", subGraphIndices.get(i), subGraphIndices.get(j)));
-//            }
-//        }
-//
-//        for (int i = 0; i < subGraphIndices.size(); i++) {
-//            for (int j = 0; j < subGraphIndices.size(); j++) {
-//                for (int k = 0; k < subGraphIndices.size(); k++) {
-//                    if (i != j && j != k && i != k) {
-//                        MPConstraint constraint = mpSolver.makeConstraint(Double.NEGATIVE_INFINITY, 1.0);
-//                        constraint.setCoefficient(x[Math.min(i, j)][Math.max(i, j)], 1.0);
-//                        constraint.setCoefficient(x[Math.min(j, k)][Math.max(j, k)], 1.0);
-//                        constraint.setCoefficient(x[Math.min(i, k)][Math.max(i, k)], -1.0);
-//                    }
-//                }
-//            }
-//        }
-//
-//        MPObjective objective = mpSolver.objective();
-//        double constant = 0;
-//
-//        for (int i = 0; i < subGraphIndices.size(); i++) {
-//            for (int j = i + 1; j < subGraphIndices.size(); j++) {
-//                objective.setCoefficient(x[i][j], -graph.getEdgeWeights()[subGraphIndices.get(i)][subGraphIndices.get(j)]);
-//                constant += Math.max(graph.getEdgeWeights()[subGraphIndices.get(i)][subGraphIndices.get(j)], 0.0);
-//            }
-//        }
-//
-//        objective.setOffset(constant);
-//
-//        objective.setMinimization();
-//
-//        MPSolver.ResultStatus resultStatus = mpSolver.solve();
-//
-//        for (int i = 0; i < subGraphIndices.size(); i++) {
-//            for (int j = i+1; j < subGraphIndices.size(); j++) {
-//                Integer u = subGraphIndices.get(i);
-//                Integer v = subGraphIndices.get(j);
-//                double value = x[i][j].solutionValue();
-//                edgeScores[u][v] += value;
-//                edgeScores[v][u] += value;
-//            }
-//        }
-//    }
 
     private static List<Integer> getIndexList(int n) {
         List<Integer> indexList = new ArrayList<>();
