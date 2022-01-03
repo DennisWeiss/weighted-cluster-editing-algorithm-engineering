@@ -10,8 +10,27 @@ public class HeuristicMain {
 
     public static final int MIN_CUT_COMPUTATION_TIMEOUT = 5;
 
+    private static boolean[][] originalEdgeExists;
+    public static boolean[][] bestResultEdgeExists;
+    public static int bestCost;
+
     public static void main(String[] args) {
         Graph graph = Utils.readGraphFromConsoleInput();
+        originalEdgeExists = graph.getEdgeExists();
+        //initialize with no edges, that is also a solution
+        bestResultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+        bestCost = Utils.getCostToChange(graph, bestResultEdgeExists);
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            //called on SIGINT or normal finishes
+            @Override
+            public void run() {
+                boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(originalEdgeExists, bestResultEdgeExists);
+
+                Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+                System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
+            }
+        });
 
 //        Stack<MergeVerticesInfo> mergeVerticesInfoStack = DataReduction.applyDataReductions(graph, System.currentTimeMillis(), MIN_CUT_COMPUTATION_TIMEOUT, DEBUG);
 
@@ -44,7 +63,10 @@ public class HeuristicMain {
 
         boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy());
 
-//        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists);
+        //untested! But do something like this if you do not do simulated annealing
+        //HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());
+
+        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists);
 
 //        boolean[][] reconstructedResultsEdgeExists = Utils.copy(resultEdgeExists, resultEdgeExists.length);
 //        while (!mergeVerticesInfoStack.empty()) {
@@ -53,10 +75,6 @@ public class HeuristicMain {
 //            graph.revertMergeVertices(mergeVerticesInfo);
 //        }
 
-        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
-
-        Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
-
-//        System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
+        // now the shutdownhook will be executed
     }
 }
