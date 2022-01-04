@@ -42,9 +42,9 @@ public class HeuristicMain {
 //            System.out.printf("cost = %d\n", cost);
 //        }
 
-        boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy());
+        boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1);
 
-//        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists);
+        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists);
 
 //        boolean[][] reconstructedResultsEdgeExists = Utils.copy(resultEdgeExists, resultEdgeExists.length);
 //        while (!mergeVerticesInfoStack.empty()) {

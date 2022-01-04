@@ -187,18 +187,19 @@ public class Heuristics {
         return resultEdgeExistsWithMinCost;
     }
 
-    public static boolean[][] getGreedyHeuristic2Randomized2(Graph graph) {
-        int iter = 40;
-
+    public static boolean[][] getGreedyHeuristic2Randomized2(Graph graph, int k, int l, double alpha) {
         boolean[][] resultEdgeExistsWithMinCost = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         int minCost = getCost(graph, resultEdgeExistsWithMinCost);
 
-        double[][] edgeScores = connectivityHeuristicOfEdges(graph, (int) Math.max(2 * Math.pow(graph.getNumberOfVertices(), 0.5), 5), iter);
+        double[][] edgeScores = connectivityHeuristicOfEdges(graph, (int) Math.max(alpha * Math.pow(graph.getNumberOfVertices(), 0.5), 5), k);
         int maxScore = getMaxScore(edgeScores);
+
+        double pFrom = 0.6;
+        double pTo = 1.0;
 
         loopScores:
         for (int score = maxScore; score > 0; score--) {
-            for (double p = 0.6; p <= 1; p += 0.05) {
+            for (double p = pFrom; p <= pTo; p += (pTo - pFrom) / l) {
                 boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
                 int cost = getCost(graph, resultEdgeExists);
                 if (cost < minCost) {
