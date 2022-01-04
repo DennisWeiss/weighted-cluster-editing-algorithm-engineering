@@ -126,6 +126,17 @@ public class Utils {
         return graph;
     }
 
+    public static int getCostToChange(Graph graph, boolean[][] changedEdgeExists) {
+        int cost = 0;
+        for (int i=0; i<graph.getNumberOfVertices(); i++) {
+            for (int j=i+1; j<graph.getNumberOfVertices(); j++) {
+                if (graph.getEdgeExists()[i][j] != changedEdgeExists[i][j])
+                cost += Math.abs( graph.getEdgeWeights()[i][j] );
+            }
+        }
+        return cost;
+    }
+
     /**
      * Returns random integer over uniform distribution
      * @param from inclusive
