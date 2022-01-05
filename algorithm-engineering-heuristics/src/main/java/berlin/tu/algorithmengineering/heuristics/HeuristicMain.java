@@ -3,6 +3,9 @@ package berlin.tu.algorithmengineering.heuristics;
 
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class HeuristicMain {
 
@@ -10,27 +13,21 @@ public class HeuristicMain {
 
     public static final int MIN_CUT_COMPUTATION_TIMEOUT = 5;
 
-    private static boolean[][] originalEdgeExists;
     public static boolean[][] bestResultEdgeExists;
     public static int bestCost;
+    static AtomicBoolean startedPrinting;
 
     public static void main(String[] args) {
+        startedPrinting = new AtomicBoolean(false);
         Graph graph = Utils.readGraphFromConsoleInput();
-        originalEdgeExists = graph.getEdgeExists();
         //initialize with no edges, that is also a solution
         bestResultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         bestCost = Utils.getCostToChange(graph, bestResultEdgeExists);
 
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            //called on SIGINT or normal finishes
-            @Override
-            public void run() {
-                boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(originalEdgeExists, bestResultEdgeExists);
-
-                Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
-                System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
-            }
-        });
+        final SignalHandler signalHandler = signal -> {
+            printCurrentlyBestSolution(graph);
+        };
+        Signal.handle(new Signal("INT"), signalHandler);
 
 //        Stack<MergeVerticesInfo> mergeVerticesInfoStack = DataReduction.applyDataReductions(graph, System.currentTimeMillis(), MIN_CUT_COMPUTATION_TIMEOUT, DEBUG);
 
@@ -75,6 +72,16 @@ public class HeuristicMain {
 //            graph.revertMergeVertices(mergeVerticesInfo);
 //        }
 
-        // now the shutdownhook will be executed
+        printCurrentlyBestSolution(graph);
+    }
+
+    private static void printCurrentlyBestSolution(Graph graph) {
+        if ( ! startedPrinting.getAndSet(true) ) {
+            boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), bestResultEdgeExists);
+
+            Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+            System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
+            System.exit(0);
+        }
     }
 }
