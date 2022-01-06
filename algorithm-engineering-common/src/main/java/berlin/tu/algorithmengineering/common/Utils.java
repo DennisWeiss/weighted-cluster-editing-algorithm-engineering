@@ -2,8 +2,15 @@ package berlin.tu.algorithmengineering.common;
 
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Random;
+import java.util.Stack;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Utils {
 
@@ -65,7 +72,7 @@ public class Utils {
             int cost = 0;
 
             for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-                for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+                for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
                     if (edgesToEdit[i][j]) {
                         cost += Math.abs(graph.getEdgeWeights()[i][j]);
                     }
@@ -77,9 +84,9 @@ public class Utils {
         StringBuilder stringBuilder = new StringBuilder();
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
-            for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
+            for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
                 if (edgesToEdit[i][j]) {
-                    stringBuilder.append(String.format("%d %d\n", i+1, j+1));
+                    stringBuilder.append(String.format("%d %d\n", i + 1, j + 1));
                 }
             }
         }
@@ -97,6 +104,26 @@ public class Utils {
         return copy;
     }
 
+
+//    public static void copyToThreadSafeList(boolean[][] mat, CopyOnWriteArrayList<Boolean> threadSafeEdgeExistsList, int size) {
+//        int n = Math.min(mat.length, size);
+//        for (int i = 0; i < n; i++) {
+//            for (int j = 0; j < n; j++) {
+//                threadSafeEdgeExistsList.set(i * n + j, mat[i][j] ? 1 : 0);
+//            }
+//        }
+//    }
+//
+//    public static boolean[][] copyFromAtomicAtomicIntegerArray(AtomicIntegerArray atomicIntegerArray, int size) {
+//        boolean[][] copy = new boolean[size][size];
+//        for (int i = 0; i < size; i++) {
+//            for (int j = 0; j < size; j++) {
+//                copy[i][j] = atomicIntegerArray.get(i * size + j) == 1;
+//            }
+//        }
+//        return copy;
+//    }
+
     public static <T> void addToStackInOrder(Stack<T> stack, Stack<T> stackToAdd) {
         Stack<T> helperStack = new Stack<>();
         while (!stackToAdd.empty()) {
@@ -108,44 +135,68 @@ public class Utils {
     }
 
     public static Graph readGraphFromConsoleInput() {
-        Scanner scanner = new Scanner(System.in);
-        int numberOfVertices = scanner.nextInt();
+        Graph graph = null;
+        int numberOfVertices;
 
-        Graph graph = new Graph(numberOfVertices);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        try {
+            numberOfVertices = Integer.parseInt(reader.readLine());
+            graph = new Graph(numberOfVertices);
 
-        for (int i = 0; i < numberOfVertices; i++) {
-            for (int j = i + 1; j < numberOfVertices; j++) {
-                int vertex1 = scanner.nextInt() - 1;
-                int vertex2 = scanner.nextInt() - 1;
-                int edgeWeight = scanner.nextInt();
+            String line;
+            for (int i = 0; i < numberOfVertices; i++) {
+                for (int j = i+1; j < numberOfVertices; j++) {
+                    line = reader.readLine();
+                    String[] str = line.split("\\s");
 
-                graph.getEdgeWeights()[vertex1][vertex2] = edgeWeight;
-                graph.getEdgeWeights()[vertex2][vertex1] = edgeWeight;
+                    int vertex1 = Integer.parseInt(str[0]) - 1;
+                    int vertex2 = Integer.parseInt(str[1]) - 1;
+                    int edgeWeight = Integer.parseInt(str[2]);
+
+                    graph.getEdgeWeights()[vertex1][vertex2] = edgeWeight;
+                    graph.getEdgeWeights()[vertex2][vertex1] = edgeWeight;
+                }
             }
-        }
 
-        graph.computeEdgeExists();
-        graph.computeNeighborhoodWeights();
-        graph.computeAbsoluteNeighborhoodWeights();
+            reader.close();
+
+            graph.computeEdgeExists();
+            graph.computeNeighborhoodWeights();
+            graph.computeAbsoluteNeighborhoodWeights();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return graph;
     }
 
     public static int getCostToChange(Graph graph, boolean[][] changedEdgeExists) {
         int cost = 0;
-        for (int i=0; i<graph.getNumberOfVertices(); i++) {
-            for (int j=i+1; j<graph.getNumberOfVertices(); j++) {
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
                 if (graph.getEdgeExists()[i][j] != changedEdgeExists[i][j])
-                cost += Math.abs( graph.getEdgeWeights()[i][j] );
+                    cost += Math.abs(graph.getEdgeWeights()[i][j]);
             }
         }
         return cost;
     }
 
+    public static AtomicInteger getCostToChange(Graph graph, CopyOnWriteArrayList<Boolean> changedEdgeExists) {
+        int cost = 0;
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
+                if (graph.getEdgeExists()[i][j] != changedEdgeExists.get(i * graph.getNumberOfVertices() + j))
+                    cost += Math.abs(graph.getEdgeWeights()[i][j]);
+            }
+        }
+        return new AtomicInteger(cost);
+    }
+
     /**
      * Returns random integer over uniform distribution
+     *
      * @param from inclusive
-     * @param to exclusive
+     * @param to   exclusive
      * @return random integer
      */
     public static int randInt(int from, int to) {
@@ -164,11 +215,9 @@ public class Utils {
         return array;
     }
 
-    public static void shuffleArray(int[] ar)
-    {
+    public static void shuffleArray(int[] ar) {
         Random random = ThreadLocalRandom.current();
-        for (int i = ar.length - 1; i > 0; i--)
-        {
+        for (int i = ar.length - 1; i > 0; i--) {
             int index = random.nextInt(i + 1);
             // Simple swap
             int a = ar[index];
@@ -177,4 +226,13 @@ public class Utils {
         }
     }
 
+    public static CopyOnWriteArrayList<Boolean> newThreadSafeEdgeExistsList(int n) {
+        CopyOnWriteArrayList<Boolean> threadSafeEdgeExistsList = new CopyOnWriteArrayList<>();
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                threadSafeEdgeExistsList.add(false);
+            }
+        }
+        return threadSafeEdgeExistsList;
+    }
 }

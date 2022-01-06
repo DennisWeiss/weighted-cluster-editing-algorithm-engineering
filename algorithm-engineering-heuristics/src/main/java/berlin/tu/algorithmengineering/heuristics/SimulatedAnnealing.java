@@ -3,31 +3,32 @@ package berlin.tu.algorithmengineering.heuristics;
 
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
-
-import java.util.ArrayList;
-import java.util.List;
+import berlin.tu.algorithmengineering.heuristics.thread.Solution;
 
 public class SimulatedAnnealing {
 
     public static final int DEFAULT_ITERATIONS = 30_000;
     public static final double T = 5;
 
-    public static List<String> simulatedAnnealingCosts = new ArrayList<>();
-
-    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists) {
-        performSimulatedAnnealing(graph, resultEdgeExists, DEFAULT_ITERATIONS);
+    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, Solution solution) {
+        performSimulatedAnnealing(graph, resultEdgeExists, solution, DEFAULT_ITERATIONS);
     }
 
-    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, int iterations) {
+
+    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, Solution solution,
+                                                 int iterations) {
         int cost = Utils.getCostToChange(graph, resultEdgeExists);
-        if (cost < HeuristicMain.bestCost) {
-            HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());
-            HeuristicMain.bestCost = cost;
+        if (cost < solution.getCost()) {
+            solution.setResultEdgeExists(Utils.copy(resultEdgeExists,graph.getNumberOfVertices()));
+            solution.setCost(cost);
         }
 
         double t = T;
 
         for (int i = 0; i < iterations; i++) {
+            if (HeuristicMain.startedPrinting.get()) {
+                break;
+            }
             int vertex = Utils.randInt(0, graph.getNumberOfVertices());
             int moveToVertex = Utils.randInt(0, graph.getNumberOfVertices());
 
@@ -37,16 +38,15 @@ public class SimulatedAnnealing {
             if (probabilityOfBetterSolution == 1 || probabilityOfBetterSolution > Math.random()) {
                 applyChange(resultEdgeExists, vertex, moveToVertex);
                 cost += deltaCost;
-                if (cost < HeuristicMain.bestCost) {
-                    HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());
-                    HeuristicMain.bestCost = cost;
+                if (cost < solution.getCost()) {
+                    solution.setResultEdgeExists(Utils.copy(resultEdgeExists,graph.getNumberOfVertices()));
+                    solution.setCost(cost);
                 }
             }
-            simulatedAnnealingCosts.add(String.valueOf(cost));
         }
     }
 
-    private static boolean checkP3(boolean[][] edgeExists) {
+    public static boolean checkP3(boolean[][] edgeExists) {
         for (int u = 0; u < edgeExists.length; u++) {
             for (int v = 0; v < edgeExists.length; v++) {
                 for (int w = u+1; w < edgeExists.length; w++) {

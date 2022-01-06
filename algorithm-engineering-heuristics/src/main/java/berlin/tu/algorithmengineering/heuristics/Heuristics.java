@@ -15,6 +15,11 @@ import java.util.*;
 
 public class Heuristics {
 
+    static {
+        Loader.loadNativeLibraries();
+
+    }
+
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
 
     public static boolean[][] getGreedyHeuristicNeighborhood(Graph graph) {
@@ -225,6 +230,9 @@ public class Heuristics {
         loopScores:
         for (int score = maxScore; score > 0; score--) {
             for (double p = pFrom; p <= pTo; p += (pTo - pFrom) / l) {
+                if (HeuristicMain.startedPrinting.get()) {
+                    break loopScores;
+                }
                 boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
                 int cost = getCost(graph, resultEdgeExists);
                 if (cost < minCost) {
@@ -423,6 +431,9 @@ public class Heuristics {
         for (int i = 0; i < iter; i++) {
             Collections.shuffle(indices);
             for (int j = 0; j < graph.getNumberOfVertices(); j += n) {
+                if (HeuristicMain.startedPrinting.get()) {
+                    return connectivityHeuristics;
+                }
                 addScoresLp(graph, indices.subList(j, Math.min(j + n, graph.getNumberOfVertices())), connectivityHeuristics);
             }
         }
@@ -431,7 +442,6 @@ public class Heuristics {
     }
 
     private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
-        Loader.loadNativeLibraries();
         MPSolver mpSolver = MPSolver.createSolver("GLOP");
 
         MPVariable[][] x = new MPVariable[subGraphIndices.size()][subGraphIndices.size()];
