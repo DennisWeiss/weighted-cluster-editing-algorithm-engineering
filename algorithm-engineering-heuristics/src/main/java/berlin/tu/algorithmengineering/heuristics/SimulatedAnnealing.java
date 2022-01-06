@@ -9,12 +9,16 @@ import java.util.List;
 
 public class SimulatedAnnealing {
 
-    public static final int ITERATIONS = 20_000;
+    public static final int DEFAULT_ITERATIONS = 30_000;
     public static final double T = 5;
 
     public static List<String> simulatedAnnealingCosts = new ArrayList<>();
 
     public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists) {
+        performSimulatedAnnealing(graph, resultEdgeExists, DEFAULT_ITERATIONS);
+    }
+
+    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, int iterations) {
 
         int cost = Utils.getCostToChange(graph, resultEdgeExists);
         if (cost < HeuristicMain.bestCost) {
@@ -24,13 +28,13 @@ public class SimulatedAnnealing {
 
         double t = T;
 
-        for (int i = 0; i < ITERATIONS; i++) {
+        for (int i = 0; i < iterations; i++) {
             int vertex = Utils.randInt(0, graph.getNumberOfVertices());
             int moveToVertex = Utils.randInt(0, graph.getNumberOfVertices());
 
             int deltaCost = getDeltaCost(graph, resultEdgeExists, vertex, moveToVertex);
             double probabilityOfBetterSolution = getProbabilityOfBetterSolution(deltaCost, t);
-            t -= 1. / ITERATIONS;
+            t -= 1. / iterations;
             if (probabilityOfBetterSolution == 1 || probabilityOfBetterSolution > Math.random()) {
                 applyChange(resultEdgeExists, vertex, moveToVertex);
                 cost += deltaCost;

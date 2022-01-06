@@ -24,10 +24,7 @@ public class HeuristicMain {
         bestResultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
         bestCost = Utils.getCostToChange(graph, bestResultEdgeExists);
 
-        final SignalHandler signalHandler = signal -> {
-            printCurrentlyBestSolution(graph);
-        };
-        Signal.handle(new Signal("INT"), signalHandler);
+        Signal.handle(new Signal("INT"), signal -> printCurrentlyBestSolution(graph));
 
 //        Stack<MergeVerticesInfo> mergeVerticesInfoStack = DataReduction.applyDataReductions(graph, System.currentTimeMillis(), MIN_CUT_COMPUTATION_TIMEOUT, DEBUG);
 
@@ -58,12 +55,19 @@ public class HeuristicMain {
 //            System.out.printf("cost = %d\n", cost);
 //        }
 
-        boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1);
+        boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph.copy());
 
-        //untested! But do something like this if you do not do simulated annealing
-        //HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());
+        // Do something like this if you do not do simulated annealing
+//        HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists, graph.getNumberOfVertices());
 
-        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists);
+        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 5_000);
+
+        Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1.);
+        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 10_000);
+
+        Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
+        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 30_000);
+
 
 //        boolean[][] reconstructedResultsEdgeExists = Utils.copy(resultEdgeExists, resultEdgeExists.length);
 //        while (!mergeVerticesInfoStack.empty()) {

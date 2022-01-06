@@ -33,7 +33,7 @@ public class Heuristics {
                     int x = closedNeighborhood.get(j);
                     vertexAdded[x] = true;
                     for (int k = j+1; k < closedNeighborhood.size(); k++) {
-                        int y = closedNeighborhood.get(j);
+                        int y = closedNeighborhood.get(k);
                         resultEdgeExists[x][y] = true;
                         resultEdgeExists[y][x] = true;
                     }
