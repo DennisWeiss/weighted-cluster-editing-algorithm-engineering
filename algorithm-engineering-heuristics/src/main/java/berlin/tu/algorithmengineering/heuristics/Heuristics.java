@@ -2,6 +2,7 @@ package berlin.tu.algorithmengineering.heuristics;
 
 
 import berlin.tu.algorithmengineering.common.Graph;
+import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.common.model.Edge;
 import berlin.tu.algorithmengineering.common.model.P3;
 import com.google.ortools.Loader;
@@ -14,10 +15,34 @@ import java.util.*;
 
 public class Heuristics {
 
-    public static double optimumP = 0;
-    public static int optimumScore = 0;
-
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+
+    public static boolean[][] getGreedyHeuristicNeighborhood(Graph graph) {
+        boolean[] vertexAdded = new boolean[graph.getNumberOfVertices()];
+
+        int[] vertices = Utils.getIntArrayInRange(graph.getNumberOfVertices());
+        Utils.shuffleArray(vertices);
+
+        boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            int vertex = vertices[i];
+            if (!vertexAdded[vertex]) {
+                List<Integer> closedNeighborhood = graph.getClosedNeighborhoodOfVertexWithoutVertices(vertex, vertexAdded);
+                for (int j = 0; j < closedNeighborhood.size(); j++) {
+                    int x = closedNeighborhood.get(j);
+                    vertexAdded[x] = true;
+                    for (int k = j+1; k < closedNeighborhood.size(); k++) {
+                        int y = closedNeighborhood.get(j);
+                        resultEdgeExists[x][y] = true;
+                        resultEdgeExists[y][x] = true;
+                    }
+                }
+            }
+        }
+
+        return resultEdgeExists;
+    }
 
     public static EdgeDeletionsWithCost getGreedyHeuristic1(Graph graph) {
         EdgeDeletionsWithCost edgeDeletionsWithCost = new EdgeDeletionsWithCost(new HashSet<>(), 0);
@@ -205,8 +230,6 @@ public class Heuristics {
                 if (cost < minCost) {
                     minCost = cost;
                     resultEdgeExistsWithMinCost = resultEdgeExists;
-                    optimumP = p;
-                    optimumScore = score;
                 }
                 if (getConnectedComponentOfResultEdgeExists(0, resultEdgeExists).size() == graph.getNumberOfVertices()) {
                     break loopScores;

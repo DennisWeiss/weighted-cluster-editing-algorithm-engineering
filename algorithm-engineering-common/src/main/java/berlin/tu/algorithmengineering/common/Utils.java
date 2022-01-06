@@ -3,6 +3,7 @@ package berlin.tu.algorithmengineering.common;
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Utils {
 
@@ -145,6 +146,31 @@ public class Utils {
      */
     public static int randInt(int from, int to) {
         return (int) ((to - from) * Math.random() + from);
+    }
+
+    public static int[] getIntArrayInRange(int to) {
+        return getIntArrayInRange(0, to);
+    }
+
+    public static int[] getIntArrayInRange(int from, int to) {
+        int[] array = new int[to - from];
+        for (int i = 0; i < array.length; i++) {
+            array[i] = from + i;
+        }
+        return array;
+    }
+
+    public static void shuffleArray(int[] ar)
+    {
+        Random random = ThreadLocalRandom.current();
+        for (int i = ar.length - 1; i > 0; i--)
+        {
+            int index = random.nextInt(i + 1);
+            // Simple swap
+            int a = ar[index];
+            ar[index] = ar[i];
+            ar[i] = a;
+        }
     }
 
 }

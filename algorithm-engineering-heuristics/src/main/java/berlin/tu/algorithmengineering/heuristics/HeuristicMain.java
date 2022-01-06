@@ -80,7 +80,6 @@ public class HeuristicMain {
             boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), bestResultEdgeExists);
 
             Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
-            System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
             System.exit(0);
         }
     }

@@ -462,6 +462,16 @@ public class Graph {
         return vertexToConnectedComponentIndex;
     }
 
+    public List<Integer> getClosedNeighborhoodOfVertexWithoutVertices(int vertex, boolean[] excludedVertices) {
+        List<Integer> closedNeighborhood = new ArrayList<>();
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (!excludedVertices[i] && (i == vertex || edgeExists[vertex][i])) {
+                closedNeighborhood.add(i);
+            }
+        }
+        return closedNeighborhood;
+    }
+
     public int getNumberOfVertices() {
         return numberOfVertices;
     }
