@@ -74,13 +74,17 @@ public class Utils {
             System.out.printf("cost = %d\n", cost);
         }
 
+        StringBuilder stringBuilder = new StringBuilder();
+
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
                 if (edgesToEdit[i][j]) {
-                    System.out.printf("%d %d\n", i+1, j+1);
+                    stringBuilder.append(String.format("%d %d\n", i+1, j+1));
                 }
             }
         }
+
+        System.out.print(stringBuilder);
     }
 
     public static boolean[][] copy(boolean[][] mat, int size) {

@@ -19,7 +19,6 @@ public class SimulatedAnnealing {
     }
 
     public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, int iterations) {
-
         int cost = Utils.getCostToChange(graph, resultEdgeExists);
         if (cost < HeuristicMain.bestCost) {
             HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());

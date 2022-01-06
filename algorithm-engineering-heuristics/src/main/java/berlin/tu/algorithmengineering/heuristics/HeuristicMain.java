@@ -62,10 +62,10 @@ public class HeuristicMain {
 
         SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 5_000);
 
-        Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1.);
+        resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1.);
         SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 10_000);
 
-        Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
+        resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
         SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 30_000);
 
 
