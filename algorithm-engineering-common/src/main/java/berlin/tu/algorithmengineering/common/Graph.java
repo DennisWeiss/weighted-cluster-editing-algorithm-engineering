@@ -446,6 +446,20 @@ public class Graph {
         return cost;
     }
 
+    public void transitiveClosure() {
+        if (numberOfVertices < 3) {
+            return;
+        }
+        int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndex();
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = i + 1; j < numberOfVertices; j++) {
+                if (!edgeExists[i][j] && vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j]) {
+                    flipEdge(i, j);
+                }
+            }
+        }
+    }
+
     private int[] getVertexToConnectedComponentIndex() {
         return getVertexToConnectedComponentIndex(getConnectedComponents(), numberOfVertices);
     }

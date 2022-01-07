@@ -3,12 +3,11 @@ package berlin.tu.algorithmengineering.heuristics;
 
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
-import berlin.tu.algorithmengineering.common.model.P3;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithCost;
 import berlin.tu.algorithmengineering.heuristics.thread.Solution;
 import sun.misc.Signal;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -46,17 +45,7 @@ public class HeuristicMain {
         bestCost = new AtomicInteger(backUpSolutionCost);
 
         Signal.handle(new Signal("INT"), signal -> {
-//            for (CompletableFuture[] completableFutures : new CompletableFuture[][]{
-//                    heuristicNeighborhoodFutures, heuristic2Randomized2Futures, heuristic1Futures,
-//                    heuristic2Randomized2ThoroughFutures
-//            }) {
-//                for (CompletableFuture completableFuture : completableFutures) {
-//                    completableFuture.complete(null);
-//                }
-//            }
-
             setBestSolution(graph.getNumberOfVertices());
-
             printCurrentlyBestSolution(graph);
         });
 
@@ -96,19 +85,11 @@ public class HeuristicMain {
             if (solution != null && solution.getCost() < HeuristicMain.bestCost.get()) {
                 HeuristicMain.bestCost.set(solution.getCost());
                 HeuristicMain.bestResultEdgeExists = Utils.copy(solution.getResultEdgeExists(), graph.getNumberOfVertices());
-
-//                if (SimulatedAnnealing.checkP3(HeuristicMain.bestResultEdgeExists)) {
-//                    Graph graph1 = new Graph(graph.getNumberOfVertices());
-//                    graph1.setEdgeExists(HeuristicMain.bestResultEdgeExists);
-//                    for (P3 p3 : graph.findAllP3()) {
-//                        System.out.printf("%d %d %d\n", p3.getU(), p3.getV(), p3.getW());
-//                    }
-//
-//                }
             }
         };
 
-        int nThreadHeuristicNeighborhood = 32;
+
+        int nThreadHeuristicNeighborhood = 64;
         heuristicNeighborhoodFutures = new CompletableFuture[nThreadHeuristicNeighborhood];
         heuristicNeighborhoodSolutions = new Solution[nThreadHeuristicNeighborhood];
 
@@ -128,66 +109,72 @@ public class HeuristicMain {
             heuristicNeighborhoodFutures[i].join();
         }
 
-        for (int i = 0; i < 3; i++) {
-            int nThreadHeuristic2Randomized2 = 8;
-            heuristic2Randomized2Futures = new CompletableFuture[nThreadHeuristic2Randomized2];
-            heuristic2Randomized2Solutions = new Solution[nThreadHeuristic2Randomized2];
 
-            for (int j = 0; j < nThreadHeuristic2Randomized2; j++) {
-                final int n = j;
-                heuristic2Randomized2Futures[j] = CompletableFuture
-                        .supplyAsync(() -> {
-                            heuristic2Randomized2Solutions[n] = new Solution(backUpEdgeExists, backUpSolutionCost);
-                            boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1.);
-                            SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, heuristic2Randomized2Solutions[n], 10_000);
-                            return heuristic2Randomized2Solutions[n];
-                        })
-                        .thenAccept(updateSolution);
-            }
+        int nThreadHeuristic2Randomized2 = 16;
+        heuristic2Randomized2Futures = new CompletableFuture[nThreadHeuristic2Randomized2];
+        heuristic2Randomized2Solutions = new Solution[nThreadHeuristic2Randomized2];
 
-            for (int j = 0; j < nThreadHeuristic2Randomized2; j++) {
-                heuristic2Randomized2Futures[j].join();
-            }
-        }
-
-//        int nThreadHeuristic1 = 16;
-//        heuristic1Futures = new CompletableFuture[nThreadHeuristic1];
-//        heuristic1Solutions = new Solution[nThreadHeuristic1];
-//
-//        for (int i = 0; i < nThreadHeuristic1; i++) {
-//            final int n = i;
-//            heuristic1Futures[i] = CompletableFuture
-//                    .supplyAsync(() -> {
-//                        heuristic1Solutions[n] = new Solution(backUpEdgeExists, backUpSolutionCost);
-//                        EdgeDeletionsWithCost edgeDeletionsWithCost = Heuristics.getGreedyHeuristic1(graph.copy());
-//                        SimulatedAnnealing.performSimulatedAnnealing(graph, Utils.todo(), heuristic1Solutions[n], 10_000);
-//                        return heuristic1Solutions[n];
-//                    })
-//                    .thenAccept(updateSolution);
-//        }
-//
-//        for (int i = 0; i < nThreadHeuristic2Randomized2; i++) {
-//            heuristic1Futures[i].join();
-//        }
-
-        int nThreadHeuristic2Randomized2Thorough = 8;
-        heuristic2Randomized2ThoroughFutures = new CompletableFuture[nThreadHeuristic2Randomized2Thorough];
-        heuristic2Randomized2ThoroughSolutions = new Solution[nThreadHeuristic2Randomized2Thorough];
-
-        for (int i = 0; i < nThreadHeuristic2Randomized2Thorough; i++) {
+        for (int i = 0; i < nThreadHeuristic2Randomized2; i++) {
             final int n = i;
-            heuristic2Randomized2ThoroughFutures[i] = CompletableFuture
+            heuristic2Randomized2Futures[i] = CompletableFuture
                     .supplyAsync(() -> {
-                        heuristic2Randomized2ThoroughSolutions[n] = new Solution(backUpEdgeExists, backUpSolutionCost);
-                        boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
-                        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, heuristic2Randomized2ThoroughSolutions[n], 30_000);
-                        return heuristic2Randomized2ThoroughSolutions[n];
+                        heuristic2Randomized2Solutions[n] = new Solution(backUpEdgeExists, backUpSolutionCost);
+                        boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1.);
+                        SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, heuristic2Randomized2Solutions[n], 10_000);
+                        return heuristic2Randomized2Solutions[n];
                     })
                     .thenAccept(updateSolution);
         }
 
-        for (int i = 0; i < nThreadHeuristic2Randomized2Thorough; i++) {
-            heuristic2Randomized2ThoroughFutures[i].join();
+        for (int i = 0; i < nThreadHeuristic2Randomized2; i++) {
+            heuristic2Randomized2Futures[i].join();
+        }
+
+        int nThreadHeuristic1 = 32;
+        heuristic1Futures = new CompletableFuture[nThreadHeuristic1];
+        heuristic1Solutions = new Solution[nThreadHeuristic1];
+
+        for (int i = 0; i < nThreadHeuristic1; i++) {
+            final int n = i;
+            heuristic1Futures[i] = CompletableFuture
+                    .supplyAsync(() -> {
+                        heuristic1Solutions[n] = new Solution(backUpEdgeExists, backUpSolutionCost);
+                        EdgeDeletionsWithCost edgeDeletionsWithCost = Heuristics.getGreedyHeuristic1(graph.copy());
+                        SimulatedAnnealing.performSimulatedAnnealing(
+                                graph,
+                                Utils.getResultEdgeExistsFromEdgesDeletions(graph, edgeDeletionsWithCost),
+                                heuristic1Solutions[n],
+                                10_000
+                        );
+                        return heuristic1Solutions[n];
+                    })
+                    .thenAccept(updateSolution);
+        }
+
+        for (int i = 0; i < nThreadHeuristic1; i++) {
+            heuristic1Futures[i].join();
+        }
+
+        for (int i = 0; i < 3; i++) {
+            int nThreadHeuristic2Randomized2Thorough = 16;
+            heuristic2Randomized2ThoroughFutures = new CompletableFuture[nThreadHeuristic2Randomized2Thorough];
+            heuristic2Randomized2ThoroughSolutions = new Solution[nThreadHeuristic2Randomized2Thorough];
+
+            for (int j = 0; j < nThreadHeuristic2Randomized2Thorough; j++) {
+                final int n = j;
+                heuristic2Randomized2ThoroughFutures[j] = CompletableFuture
+                        .supplyAsync(() -> {
+                            heuristic2Randomized2ThoroughSolutions[n] = new Solution(backUpEdgeExists, backUpSolutionCost);
+                            boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
+                            SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, heuristic2Randomized2ThoroughSolutions[n], 30_000);
+                            return heuristic2Randomized2ThoroughSolutions[n];
+                        })
+                        .thenAccept(updateSolution);
+            }
+
+            for (int j = 0; j < nThreadHeuristic2Randomized2Thorough; j++) {
+                heuristic2Randomized2ThoroughFutures[j].join();
+            }
         }
 
 //        boolean[][] reconstructedResultsEdgeExists = Utils.copy(resultEdgeExists, resultEdgeExists.length);

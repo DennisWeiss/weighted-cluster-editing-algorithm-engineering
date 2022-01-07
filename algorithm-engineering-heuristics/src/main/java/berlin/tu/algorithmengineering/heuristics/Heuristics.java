@@ -5,6 +5,9 @@ import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.common.model.Edge;
 import berlin.tu.algorithmengineering.common.model.P3;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithCost;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreDouble;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreInt;
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
@@ -16,8 +19,8 @@ import java.util.*;
 public class Heuristics {
 
     static {
-        Loader.loadNativeLibraries();
-
+        System.load("/home/team3/files/wce-students-new/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted/ortools-linux-x86-64/libjniortools.so");
+        System.load("/home/team3/files/wce-students-new/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted/ortools-linux-x86-64/libortools.so");
     }
 
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);

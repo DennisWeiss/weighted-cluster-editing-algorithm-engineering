@@ -1,6 +1,8 @@
 package berlin.tu.algorithmengineering.common;
 
+import berlin.tu.algorithmengineering.common.model.Edge;
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithCost;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -226,13 +228,14 @@ public class Utils {
         }
     }
 
-    public static CopyOnWriteArrayList<Boolean> newThreadSafeEdgeExistsList(int n) {
-        CopyOnWriteArrayList<Boolean> threadSafeEdgeExistsList = new CopyOnWriteArrayList<>();
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
-                threadSafeEdgeExistsList.add(false);
-            }
+    public static boolean[][] getResultEdgeExistsFromEdgesDeletions(Graph graph, EdgeDeletionsWithCost edgeDeletionsWithCost) {
+        Graph resultGraph = graph.copy();
+        for (Edge edge : edgeDeletionsWithCost.getEdgeDeletions()) {
+            resultGraph.flipEdge(edge.getA(), edge.getB());
         }
-        return threadSafeEdgeExistsList;
+        resultGraph.transitiveClosure();
+        return resultGraph.getEdgeExists();
     }
+
+
 }
