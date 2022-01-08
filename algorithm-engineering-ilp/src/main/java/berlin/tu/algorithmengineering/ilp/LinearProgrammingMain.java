@@ -33,7 +33,7 @@ public class LinearProgrammingMain {
 
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), reconstructedResultsEdgeExists);
 
-        Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+        System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
     }
 
 }

@@ -5,9 +5,10 @@ import berlin.tu.algorithmengineering.common.DataReduction;
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
-import com.google.ortools.Loader;
 import com.google.ortools.sat.*;
 
+import java.io.File;
+import java.util.Locale;
 import java.util.Stack;
 
 public class ConstraintSatisfactionMain {
@@ -23,7 +24,15 @@ public class ConstraintSatisfactionMain {
 
         Stack<MergeVerticesInfo> mergeVerticesInfoStack = DataReduction.applyDataReductions(graph, System.currentTimeMillis(), MIN_CUT_COMPUTATION_TIMEOUT, DEBUG);
 
-        Loader.loadNativeLibraries();
+        //Loader.loadNativeLibraries();
+        String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+        if (os.equals("mac os x")) { // only for MAC local
+            System.load("/Applications/or-tools_MacOsX-12.0.1_v9.2.9972/ortools-darwin-x86-64/libjniortools.dylib");
+        } else {
+            File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
+            String absolutePath = file.getAbsolutePath();
+            System.load(absolutePath);
+        }
 
         boolean[][] resultEdgeExists = weightedClusterEditingBinarySearchInitial(graph);
 
@@ -36,7 +45,7 @@ public class ConstraintSatisfactionMain {
 
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), reconstructedResultsEdgeExists);
 
-        Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+        System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
     }
 
     private static boolean[][] weightedClusterEditing(Graph graph, int k) {

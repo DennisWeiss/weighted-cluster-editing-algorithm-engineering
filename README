@@ -1,0 +1,19 @@
+# what you should download from Isis
+team3-heuristic.jar
+team3-ilp.jar
+team3-csp.jar
+
+# to install
+cd team3 #start where you downloaded our jar files into
+mkdir lib
+cd lib
+wget https://github.com/google/or-tools/releases/download/v9.2/or-tools_amd64_ubuntu-18.04_v9.2.9972.tar.gz
+tar xfz or-tools_amd64_ubuntu-18.04_v9.2.9972.tar.gz
+cd or-tools_Ubuntu-18.04-64bit_v9.2.9972
+unzip ortools-linux-x86-64-9.2.9972.jar -d extracted-jar
+
+# to execute
+cd team3 #it's probably mandatory to execute them from the folder containing our jars
+java -cp "team3-heuristic.jar:lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/*" berlin.tu.algorithmengineering.heuristics.HeuristicMain
+java -cp "team3-csp.jar:lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/*" berlin.tu.algorithmengineering.csp.ConstraintSatisfactionMain
+java -cp "team3-ilp.jar" berlin.tu.algorithmengineering.ilp.LinearProgrammingMain #needed because no main specified

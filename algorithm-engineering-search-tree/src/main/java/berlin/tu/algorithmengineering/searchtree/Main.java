@@ -26,7 +26,7 @@ public class Main {
 
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
 
-        Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+        System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
 
         System.out.printf("#recursive steps: %d\n", recursiveSteps);
     }

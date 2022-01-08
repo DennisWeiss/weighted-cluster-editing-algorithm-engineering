@@ -446,6 +446,20 @@ public class Graph {
         return cost;
     }
 
+    public void transitiveClosure() {
+        if (numberOfVertices < 3) {
+            return;
+        }
+        int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndex();
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = i + 1; j < numberOfVertices; j++) {
+                if (!edgeExists[i][j] && vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j]) {
+                    flipEdge(i, j);
+                }
+            }
+        }
+    }
+
     private int[] getVertexToConnectedComponentIndex() {
         return getVertexToConnectedComponentIndex(getConnectedComponents(), numberOfVertices);
     }
@@ -460,6 +474,16 @@ public class Graph {
             index++;
         }
         return vertexToConnectedComponentIndex;
+    }
+
+    public List<Integer> getClosedNeighborhoodOfVertexWithoutVertices(int vertex, boolean[] excludedVertices) {
+        List<Integer> closedNeighborhood = new ArrayList<>();
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (!excludedVertices[i] && (i == vertex || edgeExists[vertex][i])) {
+                closedNeighborhood.add(i);
+            }
+        }
+        return closedNeighborhood;
     }
 
     public int getNumberOfVertices() {

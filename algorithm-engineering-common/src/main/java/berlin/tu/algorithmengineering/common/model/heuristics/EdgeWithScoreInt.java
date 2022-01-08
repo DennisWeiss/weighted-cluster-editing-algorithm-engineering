@@ -1,4 +1,4 @@
-package berlin.tu.algorithmengineering.heuristics;
+package berlin.tu.algorithmengineering.common.model.heuristics;
 
 
 import berlin.tu.algorithmengineering.common.model.Edge;
