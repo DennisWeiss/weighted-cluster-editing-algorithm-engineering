@@ -484,7 +484,7 @@ public class Heuristics {
     private static double[][] scoreEdgesLp(Graph graph) {
         int iter = 20;
 
-        double[][] connectivityHeuristics = connectivityHeuristicOfEdges(graph, (int) Math.max(0.2 * Math.pow(graph.getNumberOfVertices(), 2.0/3.0), 5), iter);
+        double[][] connectivityHeuristics = connectivityHeuristicOfEdges(graph, (int) Math.max(0.5 * Math.pow(graph.getNumberOfVertices(), 0.5), 5), iter);
         double[][] edgeScores = new double[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {

@@ -35,23 +35,23 @@ public class HeuristicMain {
 
         Signal.handle(new Signal("INT"), signal -> {
             forceFinish.set(true);
-            System.out.println("#Calling print from interrupt thread");
+//            System.out.println("#Calling print from interrupt thread");
             printCurrentlyBestSolution(graph);
         });
 
         EdgeDeletionsWithCost edgeDeletionsWithCostFromHeuristic1 = null;
 
-        for (int i = 0; i < 5; i++) {
-            System.out.printf("#%d: Starting neighborhood heuristic after %dms\n", i, System.currentTimeMillis() - start);
+        for (int i = 0; i < 10; i++) {
+//            System.out.printf("#%d: Starting neighborhood heuristic after %dms\n", i, System.currentTimeMillis() - start);
 
-            int nThreadHeuristicNeighborhood = 128;
+            int nHeuristicNeighborhood = 128;
 
-            for (int j = 0; j < nThreadHeuristicNeighborhood; j++) {
+            for (int j = 0; j < nHeuristicNeighborhood; j++) {
                 boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph.copy());
                 SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 20_000);
             }
 
-            System.out.printf("#%d: Starting heuristic2 after %dms\n", i, System.currentTimeMillis() - start);
+//            System.out.printf("#%d: Starting heuristic2 after %dms\n", i, System.currentTimeMillis() - start);
 
             int nThreadHeuristic2Randomized2 = 4;
 
@@ -60,13 +60,13 @@ public class HeuristicMain {
                 SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, i == 0 ? 10_000 : 30_000);
             }
 
-            System.out.printf("#%d: Starting heuristic1 after %dms\n", i, System.currentTimeMillis() - start);
+//            System.out.printf("#%d: Starting heuristic1 after %dms\n", i, System.currentTimeMillis() - start);
 
             if (edgeDeletionsWithCostFromHeuristic1 == null) {
-                edgeDeletionsWithCostFromHeuristic1 = Heuristics.getGreedyHeuristic1(graph.copy());
+                edgeDeletionsWithCostFromHeuristic1 = Heuristics.getGreedyHeuristicLp(graph.copy());
             }
 
-            int nThreadHeuristic1 = 16;
+            int nThreadHeuristic1 = 32;
 
             for (int j = 0; j < nThreadHeuristic1; j++) {
                 SimulatedAnnealing.performSimulatedAnnealing(
@@ -77,17 +77,16 @@ public class HeuristicMain {
             }
 
 //            System.out.printf("#%d: Starting heuristic2Thorough after %dms\n", i, System.currentTimeMillis() - start);
-//
+
 //            int nThreadHeuristic2ThoroughRandomized2 = 2;
 //
 //            for (int j = 0; j < nThreadHeuristic2ThoroughRandomized2; j++) {
-//                final int n = j;
 //                boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
 //                SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 30_000);
 //            }
         }
 
-        System.out.println("#Calling print from main thread");
+//        System.out.println("#Calling print from main thread");
         printCurrentlyBestSolution(graph);
     }
 
@@ -96,11 +95,11 @@ public class HeuristicMain {
 
         String edgesToEditString = Utils.edgesToEditString(graph, edgesToEdit, DEBUG);
 
-        System.out.println("#About to set startedPrinting variable");
+//        System.out.println("#About to set startedPrinting variable");
         if (!startedPrinting.getAndSet(true)) {
-            System.out.println("#Successfully set startedPrinting variable");
+//            System.out.println("#Successfully set startedPrinting variable");
             System.out.print(edgesToEditString);
-            System.out.println("#Successfully printed");
+//            System.out.println("#Successfully printed");
             System.exit(0);
         }
     }
