@@ -18,17 +18,14 @@ public class SimulatedAnnealing {
     public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, Solution solution,
                                                  int iterations) {
         int cost = Utils.getCostToChange(graph, resultEdgeExists);
-        if (cost < solution.getCost()) {
-            solution.setResultEdgeExists(Utils.copy(resultEdgeExists,graph.getNumberOfVertices()));
+        if (!HeuristicMain.forceFinish.get() && cost < solution.getCost()) {
+            solution.setResultEdgeExists(Utils.copy(resultEdgeExists, graph.getNumberOfVertices()));
             solution.setCost(cost);
         }
 
         double t = T;
 
         for (int i = 0; i < iterations; i++) {
-            if (HeuristicMain.startedPrinting.get()) {
-                break;
-            }
             int vertex = Utils.randInt(0, graph.getNumberOfVertices());
             int moveToVertex = Utils.randInt(0, graph.getNumberOfVertices());
 
@@ -38,6 +35,9 @@ public class SimulatedAnnealing {
             if (probabilityOfBetterSolution == 1 || probabilityOfBetterSolution > Math.random()) {
                 applyChange(resultEdgeExists, vertex, moveToVertex);
                 cost += deltaCost;
+                if (HeuristicMain.forceFinish.get()) {
+                    break;
+                }
                 if (cost < solution.getCost()) {
                     solution.setResultEdgeExists(Utils.copy(resultEdgeExists,graph.getNumberOfVertices()));
                     solution.setCost(cost);

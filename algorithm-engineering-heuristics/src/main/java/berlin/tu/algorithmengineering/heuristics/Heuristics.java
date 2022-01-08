@@ -36,7 +36,6 @@ public class Heuristics {
             File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
             String absolutePath = file.getAbsolutePath();
             System.load(absolutePath);
-            //System.load("/home/team3/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted/ortools-linux-x86-64/libjniortools.so");
         }
     }
 
@@ -72,7 +71,7 @@ public class Heuristics {
     public static EdgeDeletionsWithCost getGreedyHeuristic1(Graph graph) {
         EdgeDeletionsWithCost edgeDeletionsWithCost = new EdgeDeletionsWithCost(new HashSet<>(), 0);
         int transitiveClosureCost = graph.getTransitiveClosureCost();
-        if (transitiveClosureCost == 0) {
+        if (transitiveClosureCost == 0 || HeuristicMain.forceFinish.get()) {
             return edgeDeletionsWithCost;
         }
         int[][] edgeScores = scoreEdges(graph);
@@ -250,7 +249,7 @@ public class Heuristics {
         loopScores:
         for (int score = maxScore; score > 0; score--) {
             for (double p = pFrom; p <= pTo; p += (pTo - pFrom) / l) {
-                if (HeuristicMain.startedPrinting.get()) {
+                if (HeuristicMain.forceFinish.get()) {
                     break loopScores;
                 }
                 boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
@@ -451,7 +450,7 @@ public class Heuristics {
         for (int i = 0; i < iter; i++) {
             Collections.shuffle(indices);
             for (int j = 0; j < graph.getNumberOfVertices(); j += n) {
-                if (HeuristicMain.startedPrinting.get()) {
+                if (HeuristicMain.forceFinish.get()) {
                     return connectivityHeuristics;
                 }
                 addScoresLp(graph, indices.subList(j, Math.min(j + n, graph.getNumberOfVertices())), connectivityHeuristics);

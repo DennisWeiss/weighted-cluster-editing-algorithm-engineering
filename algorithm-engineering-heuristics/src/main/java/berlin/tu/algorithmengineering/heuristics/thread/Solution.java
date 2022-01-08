@@ -10,19 +10,19 @@ public class Solution {
         this.cost = cost;
     }
 
-    public boolean[][] getResultEdgeExists() {
+    public synchronized boolean[][] getResultEdgeExists() {
         return resultEdgeExists;
     }
 
-    public void setResultEdgeExists(boolean[][] resultEdgeExists) {
+    public synchronized void setResultEdgeExists(boolean[][] resultEdgeExists) {
         this.resultEdgeExists = resultEdgeExists;
     }
 
-    public int getCost() {
+    public synchronized int getCost() {
         return cost;
     }
 
-    public void setCost(int cost) {
+    public synchronized void setCost(int cost) {
         this.cost = cost;
     }
 }

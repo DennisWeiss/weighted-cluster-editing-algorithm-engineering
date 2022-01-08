@@ -13,7 +13,6 @@ import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Utils {
 
@@ -66,11 +65,11 @@ public class Utils {
         return edgesToEdit;
     }
 
-    public static void printEdgesToEdit(Graph graph, boolean[][] edgesToEdit) {
-        printEdgesToEdit(graph, edgesToEdit, false);
+    public static String edgesToEditString(Graph graph, boolean[][] edgesToEdit) {
+        return edgesToEditString(graph, edgesToEdit, false);
     }
 
-    public static void printEdgesToEdit(Graph graph, boolean[][] edgesToEdit, boolean debug) {
+    public static String edgesToEditString(Graph graph, boolean[][] edgesToEdit, boolean debug) {
         if (debug) {
             int cost = 0;
 
@@ -94,7 +93,7 @@ public class Utils {
             }
         }
 
-        System.out.print(stringBuilder);
+        return stringBuilder.toString();
     }
 
     public static boolean[][] copy(boolean[][] mat, int size) {
@@ -229,7 +228,7 @@ public class Utils {
         }
     }
 
-    public static boolean[][] getResultEdgeExistsFromEdgesDeletions(Graph graph, EdgeDeletionsWithCost edgeDeletionsWithCost) {
+    public static boolean[][] getResultEdgeExistsFromEdgeDeletions(Graph graph, EdgeDeletionsWithCost edgeDeletionsWithCost) {
         Graph resultGraph = graph.copy();
         for (Edge edge : edgeDeletionsWithCost.getEdgeDeletions()) {
             resultGraph.flipEdge(edge.getA(), edge.getB());

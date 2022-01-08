@@ -5,7 +5,6 @@ import berlin.tu.algorithmengineering.common.DataReduction;
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
-import com.google.ortools.Loader;
 import com.google.ortools.sat.*;
 
 import java.io.File;
@@ -46,7 +45,7 @@ public class ConstraintSatisfactionMain {
 
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), reconstructedResultsEdgeExists);
 
-        Utils.printEdgesToEdit(graph, edgesToEdit, DEBUG);
+        System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
     }
 
     private static boolean[][] weightedClusterEditing(Graph graph, int k) {
