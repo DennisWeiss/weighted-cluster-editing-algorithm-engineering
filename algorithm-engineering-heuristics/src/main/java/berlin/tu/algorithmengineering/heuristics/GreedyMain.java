@@ -95,7 +95,7 @@ public class GreedyMain {
     }
 
 
-    public static void main(String[] a  rgs) {
+    public static void main(String[] args) {
         Graph graph = Utils.readGraphFromConsoleInput();
         originalEdgeExists = graph.getEdgeExists();
         //initialize with no edges, that is also a solution
