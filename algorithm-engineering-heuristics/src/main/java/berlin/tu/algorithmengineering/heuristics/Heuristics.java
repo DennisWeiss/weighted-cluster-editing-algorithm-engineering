@@ -8,7 +8,6 @@ import berlin.tu.algorithmengineering.common.model.P3;
 import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithCost;
 import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreDouble;
 import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreInt;
-import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
 import com.google.ortools.linearsolver.MPSolver;
@@ -398,7 +397,7 @@ public class Heuristics {
                     graph.flipEdge(i, j);
                     int edgeFlipCost = graph.getEdgeWeights()[i][j];
                     graph.getEdgeWeights()[i][j] = FORBIDDEN_VALUE;
-                    graph.getEdgeWeights()[j][j] = FORBIDDEN_VALUE;
+                    graph.getEdgeWeights()[j][i] = FORBIDDEN_VALUE;
                     graph.getAbsoluteNeighborhoodWeights()[i] += -FORBIDDEN_VALUE + edgeFlipCost;
                     graph.getAbsoluteNeighborhoodWeights()[j] += -FORBIDDEN_VALUE + edgeFlipCost;
 

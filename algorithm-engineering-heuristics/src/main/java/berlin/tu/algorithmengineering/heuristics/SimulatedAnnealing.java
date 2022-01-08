@@ -10,17 +10,17 @@ public class SimulatedAnnealing {
     public static final int DEFAULT_ITERATIONS = 30_000;
     public static final double T = 5;
 
-    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, Solution solution) {
-        performSimulatedAnnealing(graph, resultEdgeExists, solution, DEFAULT_ITERATIONS);
+    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists) {
+        performSimulatedAnnealing(graph, resultEdgeExists, DEFAULT_ITERATIONS);
     }
 
 
-    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists, Solution solution,
+    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists,
                                                  int iterations) {
         int cost = Utils.getCostToChange(graph, resultEdgeExists);
-        if (!HeuristicMain.forceFinish.get() && cost < solution.getCost()) {
-            solution.setResultEdgeExists(Utils.copy(resultEdgeExists, graph.getNumberOfVertices()));
-            solution.setCost(cost);
+        if (!HeuristicMain.forceFinish.get() && cost < HeuristicMain.bestCost.get()) {
+            HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists, graph.getNumberOfVertices());
+            HeuristicMain.bestCost.set(cost);
         }
 
         double t = T;
@@ -38,9 +38,9 @@ public class SimulatedAnnealing {
                 if (HeuristicMain.forceFinish.get()) {
                     break;
                 }
-                if (cost < solution.getCost()) {
-                    solution.setResultEdgeExists(Utils.copy(resultEdgeExists,graph.getNumberOfVertices()));
-                    solution.setCost(cost);
+                if (cost < HeuristicMain.bestCost.get()) {
+                    HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());
+                    HeuristicMain.bestCost.set(cost);
                 }
             }
         }
