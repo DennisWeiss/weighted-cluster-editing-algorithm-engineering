@@ -64,6 +64,11 @@
             <artifactId>maven-dependency-plugin</artifactId>
             <version>3.2.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-all</artifactId>
+            <version>0.41</version>
+        </dependency>
     </dependencies>
 
     <build>
