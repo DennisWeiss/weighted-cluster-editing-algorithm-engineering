@@ -24,8 +24,14 @@
         </dependency>
         <dependency>
             <groupId>com.google.ortools</groupId>
-            <artifactId>ortools-java</artifactId>
-            <version>9.1.9490</version>
+            <artifactId>ortools</artifactId>
+            <version>9.2.9972</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.19.1</version>
         </dependency>
     </dependencies>
 

@@ -10,7 +10,16 @@ import com.google.ortools.linearsolver.MPObjective;
 import com.google.ortools.linearsolver.MPSolver;
 import com.google.ortools.linearsolver.MPVariable;
 
-import java.util.*;
+import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Iterator;
+import java.util.Locale;
+
 
 public class Heuristics {
 
@@ -408,7 +417,16 @@ public class Heuristics {
     }
 
     private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
-        Loader.loadNativeLibraries();
+        //Loader.loadNativeLibraries();
+        String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+        if (os.equals("mac os x")) { // only for MAC local
+            System.load("/Applications/or-tools_MacOsX-12.0.1_v9.2.9972/ortools-darwin-x86-64/libjniortools.dylib");
+        } else {
+            File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
+            String absolutePath = file.getAbsolutePath();
+            System.load(absolutePath);
+            //System.load("/home/team3/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted/ortools-linux-x86-64/libjniortools.so");
+        }
         MPSolver mpSolver = MPSolver.createSolver("GLOP");
 
         MPVariable[][] x = new MPVariable[subGraphIndices.size()][subGraphIndices.size()];

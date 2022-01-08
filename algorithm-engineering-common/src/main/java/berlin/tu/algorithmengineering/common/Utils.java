@@ -2,7 +2,8 @@ package berlin.tu.algorithmengineering.common;
 
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 
-import java.util.*;
+import java.util.Stack;
+import java.util.Scanner;
 
 public class Utils {
 
