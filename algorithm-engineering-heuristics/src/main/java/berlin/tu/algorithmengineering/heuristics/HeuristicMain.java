@@ -38,7 +38,6 @@ public class HeuristicMain {
 
         Signal.handle(new Signal("INT"), signal -> {
             forceFinish.set(true);
-//            setBestSolution(graph.getNumberOfVertices());
             System.out.println("#Calling print from interrupt thread");
             printCurrentlyBestSolution(graph);
         });

@@ -43,7 +43,7 @@
                             <appendAssemblyId>false</appendAssemblyId>
                             <archive>
                                 <manifest>
-                                    <mainClass>LinearProgrammingMain</mainClass>
+                                    <mainClass>berlin.tu.algorithmengineering.ilp.LinearProgrammingMain</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
