@@ -265,6 +265,56 @@ public class Heuristics {
 
         return resultEdgeExistsWithMinCost;
     }
+    public static boolean[][] getGreedyHeuristic4random(Graph graph) {
+
+        //start with no edges
+        boolean[][] newEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+
+        // sort edges, according to signed weight
+        PriorityQueue<EdgeWithScoreInt> edgesWithScore = new PriorityQueue<>(Collections.reverseOrder());
+        for (int i=0; i < graph.getNumberOfVertices(); i++) {
+            for (int j=i+1; j < graph.getNumberOfVertices(); j++) {
+                edgesWithScore.add(new EdgeWithScoreInt(new Edge(i, j), graph.getEdgeWeights()[i][j]));
+            }
+        }
+
+        while (edgesWithScore.size() > 0) {
+            Edge edgeToAdd = edgesWithScore.poll().getEdge();
+            int u = edgeToAdd.getA();
+            int v = edgeToAdd.getB();
+            System.out.println("#edge weight="+graph.getEdgeWeights()[u][v]);
+
+            // calc how good or bad it would be to merge the cliques of u and v
+            int costDifference = 0;
+            for (int w_u=0; w_u < graph.getNumberOfVertices(); w_u++) {
+                if (w_u == u || newEdgeExists[u][w_u]) {
+                    for (int w_v=0; w_v < graph.getNumberOfVertices(); w_v++) {
+                        if (w_v == v || newEdgeExists[v][w_v]) {
+                            costDifference -= graph.getEdgeWeights()[w_u][w_v];
+                        }
+                    }
+                }
+            }
+
+            if ( (costDifference == 0 && Math.random() < .5)
+                    || (costDifference > 0 && Math.random()*(costDifference+2) < 1)
+                    || (costDifference < 0 && Math.random()*(-costDifference+2) > 1) ) {
+                //merge cliques of u and v
+                for (int w_u=0; w_u < graph.getNumberOfVertices(); w_u++) {
+                    if (w_u == u || newEdgeExists[u][w_u]) {
+                        for (int w_v=0; w_v < graph.getNumberOfVertices(); w_v++) {
+                            if (w_v == v || newEdgeExists[v][w_v]) {
+                                newEdgeExists[w_v][w_u] = true;
+                                newEdgeExists[w_u][w_v] = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return newEdgeExists;
+    }
 
     public static boolean[][] getGreedyHeuristic2Randomized(Graph graph) {
         int iter = 50;
@@ -392,14 +442,16 @@ public class Heuristics {
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
                 if (graph.getEdgeExists()[i][j]) {
+
+                    int edgeFlipCost = -graph.getEdgeWeights()[i][j];// is negative
+                    graph.getEdgeWeights()[i][j] = -FORBIDDEN_VALUE;
+                    graph.getEdgeWeights()[j][i] = -FORBIDDEN_VALUE;
+                    graph.getAbsoluteNeighborhoodWeights()[i] += -FORBIDDEN_VALUE - edgeFlipCost;
+                    graph.getAbsoluteNeighborhoodWeights()[j] += -FORBIDDEN_VALUE - edgeFlipCost;
+
                     int d = getD(graph, i, j);
 
                     graph.flipEdge(i, j);
-                    int edgeFlipCost = graph.getEdgeWeights()[i][j];
-                    graph.getEdgeWeights()[i][j] = FORBIDDEN_VALUE;
-                    graph.getEdgeWeights()[j][i] = FORBIDDEN_VALUE;
-                    graph.getAbsoluteNeighborhoodWeights()[i] += -FORBIDDEN_VALUE + edgeFlipCost;
-                    graph.getAbsoluteNeighborhoodWeights()[j] += -FORBIDDEN_VALUE + edgeFlipCost;
 
                     int score = d - getD(graph, i, j) + edgeFlipCost;
                     edgeScores[i][j] = score;
@@ -407,8 +459,6 @@ public class Heuristics {
 
                     graph.getEdgeWeights()[i][j] = edgeFlipCost;
                     graph.getEdgeWeights()[j][i] = edgeFlipCost;
-                    graph.getAbsoluteNeighborhoodWeights()[i] -= -FORBIDDEN_VALUE + edgeFlipCost;
-                    graph.getAbsoluteNeighborhoodWeights()[j] -= -FORBIDDEN_VALUE + edgeFlipCost;
                     graph.flipEdge(i, j);
                 }
             }
@@ -421,7 +471,12 @@ public class Heuristics {
         int lowerBound = 0;
         for (P3 p3 : p3List) {
             lowerBound += graph.getSmallestAbsoluteWeight(p3);
-
+            //TODO better:
+            /*int w = p3.getW();
+            if (w == u || w == v) w = p3.getV();
+            if (w == u || w == v) w = p3.getU();
+            lowerBound += Math.min(Math.abs(graph.getEdgeWeights()[u][w]),Math.abs(graph.getEdgeWeights()[v][w]));
+             */
         }
         return lowerBound;
     }
