@@ -95,7 +95,7 @@ public class GreedyMain {
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] a  rgs) {
         Graph graph = Utils.readGraphFromConsoleInput();
         originalEdgeExists = graph.getEdgeExists();
         //initialize with no edges, that is also a solution
@@ -112,7 +112,6 @@ public class GreedyMain {
                 System.out.printf("#recursive steps: %d, %f\n", Heuristics.optimumScore, Heuristics.optimumP);
             }
         });
-
 
         SpectralClustering spectralClustering = new SpectralClustering(graph.copy().getEdgeWeights());
         List<Eigenpair> listEigenpairs = spectralClustering.getEigenDecomposition();
