@@ -39,7 +39,7 @@ public class HeuristicMain {
             printCurrentlyBestSolution(graph);
         });
 
-        EdgeDeletionsWithCost edgeDeletionsWithCostFromHeuristic1 = null;
+        /*EdgeDeletionsWithCost edgeDeletionsWithCostFromHeuristic1 = null;
 
         for (int i = 0; i < 5; i++) {
             System.out.printf("#%d: Starting neighborhood heuristic after %dms\n", i, System.currentTimeMillis() - start);
@@ -85,7 +85,9 @@ public class HeuristicMain {
 //                boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 40, 10, 2.5);
 //                SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 30_000);
 //            }
-        }
+        }*/
+
+        bestResultEdgeExists = Heuristics.getSpectralClusteringHeuristic(graph);
 
         System.out.println("#Calling print from main thread");
         printCurrentlyBestSolution(graph);

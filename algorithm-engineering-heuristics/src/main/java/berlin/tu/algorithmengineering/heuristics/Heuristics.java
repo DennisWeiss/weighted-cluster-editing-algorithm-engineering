@@ -12,16 +12,11 @@ import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
 import com.google.ortools.linearsolver.MPSolver;
 import com.google.ortools.linearsolver.MPVariable;
+import org.ejml.data.Eigenpair;
+import org.ejml.simple.SimpleMatrix;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Set;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Iterator;
-import java.util.Locale;
+import java.util.*;
 
 
 public class Heuristics {
@@ -39,6 +34,10 @@ public class Heuristics {
     }
 
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+
+    // Higher precision means earlier termination
+    // and higher error
+    static final Double PRECISION = 0.0;
 
     public static boolean[][] getGreedyHeuristicNeighborhood(Graph graph) {
         boolean[] vertexAdded = new boolean[graph.getNumberOfVertices()];
@@ -134,6 +133,29 @@ public class Heuristics {
         return edgeDeletionsWithCost;
     }
 
+    public static boolean[][] getSpectralClusteringHeuristic(Graph graph) {
+        Graph resultGraph = graph.copy();
+        SpectralClustering spectralClustering = new SpectralClustering(resultGraph.copy().getEdgeWeights());
+        List<Eigenpair> listEigenpairs = spectralClustering.getEigenDecomposition();
+
+        int k = spectralClustering.bestClusterSizeK(listEigenpairs);
+        SimpleMatrix myH = spectralClustering.buildSimpleMatrix(listEigenpairs, k);
+
+        DataSet data = new DataSet(myH);
+
+        // Call k means
+        kmeans(data, k);
+
+        // build clique cased on clustering
+        HashMap<Integer, ArrayList<Integer>> myCluster = spectralClustering.getCluster(data);
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : myCluster.entrySet()) {
+            ArrayList<Integer> value = entry.getValue();
+            for(int i = 0; i < value.size(); i++){
+                applyChange(resultGraph.getEdgeExists(), value.get(i), value.get(0));
+            }
+        }
+        return resultGraph.getEdgeExists();
+    }
 
     public static EdgeDeletionsWithCost getGreedyHeuristicLp(Graph graph) {
         EdgeDeletionsWithCost edgeDeletionsWithCost = new EdgeDeletionsWithCost(new HashSet<>(), 0);
@@ -518,5 +540,74 @@ public class Heuristics {
         return indexList;
     }
 
+    /* K-Means++ implementation, initializes K centroids from data */
+    static LinkedList<HashMap<String, Double>> kmeanspp(DataSet data, int K) {
+        LinkedList<HashMap<String,Double>> centroids = new LinkedList<>();
+
+        centroids.add(data.randomFromDataSet()); // Abschnittener H Vektor
+
+        for(int i=1; i<K; i++){
+            centroids.add(data.calculateWeighedCentroid());
+        }
+
+        return centroids;
+    }
+
+    /* K-Means itself, it takes a dataset and a number K and adds class numbers
+     * to records in the dataset */
+    static void kmeans(DataSet data, int K){
+        // Select K initial centroids
+        LinkedList<HashMap<String,Double>> centroids = kmeanspp(data, K);
+
+        // Initialize Sum of Squared Errors to max, we'll lower it at each iteration
+        Double SSE = Double.MAX_VALUE;
+
+        while (true) {
+
+            // Assign observations to centroids
+            var records = data.getRecords();
+
+            // For each record
+            for(var record : records){
+                Double minDist = Double.MAX_VALUE;
+                // Find the centroid at a minimum distance from it and add the record to its cluster
+                for(int i = 0; i < centroids.size(); i++){
+                    Double dist = DataSet.euclideanDistance(centroids.get(i), record.getRecord());
+                    if(dist < minDist){
+                        minDist = dist;
+                        record.setClusterNo(i);
+                    }
+                }
+            }
+
+            // Recompute centroids according to new cluster assignments
+            centroids = data.recomputeCentroids(K);
+
+            // Exit condition, SSE changed less than PRECISION parameter
+            Double newSSE = data.calculateTotalSSE(centroids);
+            if(SSE-newSSE <= PRECISION){
+                break;
+            }
+            SSE = newSSE;
+        }
+    }
+
+    private static void applyChange(boolean[][] edgeExists, int vertex, int moveToVertex) {
+        for (int i = 0; i < edgeExists.length; i++) {
+            edgeExists[vertex][i] = false;
+            edgeExists[i][vertex] = false;
+        }
+        if (vertex == moveToVertex) {
+            return;
+        }
+        for (int i = 0; i < edgeExists.length; i++) {
+            if (edgeExists[moveToVertex][i]) {
+                edgeExists[vertex][i] = true;
+                edgeExists[i][vertex] = true;
+            }
+        }
+        edgeExists[vertex][moveToVertex] = true;
+        edgeExists[moveToVertex][vertex] = true;
+    }
 
 }
