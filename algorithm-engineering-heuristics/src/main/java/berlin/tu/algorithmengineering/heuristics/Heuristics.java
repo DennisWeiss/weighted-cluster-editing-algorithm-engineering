@@ -2,8 +2,12 @@ package berlin.tu.algorithmengineering.heuristics;
 
 
 import berlin.tu.algorithmengineering.common.Graph;
+import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.common.model.Edge;
 import berlin.tu.algorithmengineering.common.model.P3;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithCost;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreDouble;
+import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreInt;
 import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
@@ -23,10 +27,47 @@ import java.util.Locale;
 
 public class Heuristics {
 
-    public static double optimumP = 0;
-    public static int optimumScore = 0;
+    static {
+        //Loader.loadNativeLibraries();
+        String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+        if (os.equals("mac os x")) { // only for MAC local
+            System.load("/Applications/or-tools_MacOsX-12.0.1_v9.2.9972/ortools-darwin-x86-64/libjniortools.dylib");
+        } else {
+            File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
+            String absolutePath = file.getAbsolutePath();
+            System.load(absolutePath);
+            //System.load("/home/team3/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted/ortools-linux-x86-64/libjniortools.so");
+        }
+    }
 
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+
+    public static boolean[][] getGreedyHeuristicNeighborhood(Graph graph) {
+        boolean[] vertexAdded = new boolean[graph.getNumberOfVertices()];
+
+        int[] vertices = Utils.getIntArrayInRange(graph.getNumberOfVertices());
+        Utils.shuffleArray(vertices);
+
+        boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+
+        for (int i = 0; i < graph.getNumberOfVertices(); i++) {
+            int vertex = vertices[i];
+            if (!vertexAdded[vertex]) {
+                List<Integer> closedNeighborhood = graph.getClosedNeighborhoodOfVertexWithoutVertices(vertex, vertexAdded);
+                for (int j = 0; j < closedNeighborhood.size(); j++) {
+                    int x = closedNeighborhood.get(j);
+                    vertexAdded[x] = true;
+                    for (int k = j+1; k < closedNeighborhood.size(); k++) {
+                        int y = closedNeighborhood.get(k);
+                        resultEdgeExists[x][y] = true;
+                        resultEdgeExists[y][x] = true;
+                    }
+                }
+            }
+        }
+
+        return resultEdgeExists;
+    }
 
     public static EdgeDeletionsWithCost getGreedyHeuristic1(Graph graph) {
         EdgeDeletionsWithCost edgeDeletionsWithCost = new EdgeDeletionsWithCost(new HashSet<>(), 0);
@@ -209,13 +250,14 @@ public class Heuristics {
         loopScores:
         for (int score = maxScore; score > 0; score--) {
             for (double p = pFrom; p <= pTo; p += (pTo - pFrom) / l) {
+                if (HeuristicMain.startedPrinting.get()) {
+                    break loopScores;
+                }
                 boolean[][] resultEdgeExists = getTransitiveClosureOfResultEdgeExists(getResultEdgeExistsWithMinScoreRandomized(edgeScores, score, p));
                 int cost = getCost(graph, resultEdgeExists);
                 if (cost < minCost) {
                     minCost = cost;
                     resultEdgeExistsWithMinCost = resultEdgeExists;
-                    optimumP = p;
-                    optimumScore = score;
                 }
                 if (getConnectedComponentOfResultEdgeExists(0, resultEdgeExists).size() == graph.getNumberOfVertices()) {
                     break loopScores;
@@ -409,6 +451,9 @@ public class Heuristics {
         for (int i = 0; i < iter; i++) {
             Collections.shuffle(indices);
             for (int j = 0; j < graph.getNumberOfVertices(); j += n) {
+                if (HeuristicMain.startedPrinting.get()) {
+                    return connectivityHeuristics;
+                }
                 addScoresLp(graph, indices.subList(j, Math.min(j + n, graph.getNumberOfVertices())), connectivityHeuristics);
             }
         }
@@ -417,16 +462,6 @@ public class Heuristics {
     }
 
     private static void addScoresLp(Graph graph, List<Integer> subGraphIndices, double[][] edgeScores) {
-        //Loader.loadNativeLibraries();
-        String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-        if (os.equals("mac os x")) { // only for MAC local
-            System.load("/Applications/or-tools_MacOsX-12.0.1_v9.2.9972/ortools-darwin-x86-64/libjniortools.dylib");
-        } else {
-            File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
-            String absolutePath = file.getAbsolutePath();
-            System.load(absolutePath);
-            //System.load("/home/team3/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted/ortools-linux-x86-64/libjniortools.so");
-        }
         MPSolver mpSolver = MPSolver.createSolver("GLOP");
 
         MPVariable[][] x = new MPVariable[subGraphIndices.size()][subGraphIndices.size()];

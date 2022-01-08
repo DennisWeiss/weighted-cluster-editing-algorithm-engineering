@@ -104,21 +104,6 @@
                             <generatePom>true</generatePom>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>or-tools-dependency</id>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <phase>validate</phase>
-                        <configuration>
-                            <groupId>com.google.ortools</groupId>
-                            <artifactId>ortools</artifactId>
-                            <version>9.2.9972</version>
-                            <file>${basedir}/lib/ortools-java-9.2.9972.jar</file>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
