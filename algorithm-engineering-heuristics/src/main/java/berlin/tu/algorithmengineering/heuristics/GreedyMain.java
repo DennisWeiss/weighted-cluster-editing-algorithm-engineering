@@ -7,9 +7,8 @@ import org.ejml.data.Complex64F;
 import org.ejml.data.Eigenpair;
 import org.ejml.simple.SimpleMatrix;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 public class GreedyMain {
 
@@ -61,7 +60,6 @@ public class GreedyMain {
                     if(dist < minDist){
                         minDist = dist;
                         record.setClusterNo(i);
-
                     }
                 }
             }
@@ -78,8 +76,26 @@ public class GreedyMain {
         }
     }
 
+    private static void applyChange(boolean[][] edgeExists, int vertex, int moveToVertex) {
+        for (int i = 0; i < edgeExists.length; i++) {
+            edgeExists[vertex][i] = false;
+            edgeExists[i][vertex] = false;
+        }
+        if (vertex == moveToVertex) {
+            return;
+        }
+        for (int i = 0; i < edgeExists.length; i++) {
+            if (edgeExists[moveToVertex][i]) {
+                edgeExists[vertex][i] = true;
+                edgeExists[i][vertex] = true;
+            }
+        }
+        edgeExists[vertex][moveToVertex] = true;
+        edgeExists[moveToVertex][vertex] = true;
+    }
 
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws IOException {
         Graph graph = Utils.readGraphFromConsoleInput();
         originalEdgeExists = graph.getEdgeExists();
         //initialize with no edges, that is also a solution
@@ -99,20 +115,24 @@ public class GreedyMain {
 
 
         SpectralClustering spectralClustering = new SpectralClustering(graph.copy().getEdgeWeights());
-        SimpleMatrix simpleMatrix = spectralClustering.getGraphLaplacian();
-        //List<Complex64F> list = spectralClustering.getEigenValues();
         List<Eigenpair> listEigenpairs = spectralClustering.getEigenDecomposition();
 
-        SimpleMatrix myH = spectralClustering.buildSimpleMatrix((listEigenpairs));
 
         int k = spectralClustering.bestClusterSizeK(listEigenpairs);
+        SimpleMatrix myH = spectralClustering.buildSimpleMatrix(listEigenpairs, k);
 
         DataSet data = new DataSet(myH);
 
-        // Cluster
+        // Call k means
         kmeans(data, k);
 
-        // Output into a csv
-        data.createCsvOutput("files/sampleClustered.csv");
+        // build clique cased on clustering
+        HashMap<Integer, ArrayList<Integer>> myCluster = spectralClustering.getCluster(data);
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : myCluster.entrySet()) {
+            ArrayList<Integer> value = entry.getValue();
+            for(int i = 1; i < value.size(); i++){
+                applyChange(graph.getEdgeExists(), value.get(i), value.get(0));
+            }
+        }
     }
 }

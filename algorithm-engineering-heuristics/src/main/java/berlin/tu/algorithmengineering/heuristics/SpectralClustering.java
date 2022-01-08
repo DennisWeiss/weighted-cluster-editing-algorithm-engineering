@@ -85,19 +85,27 @@ public class SpectralClustering {
         return degreeMatrix;
     }
 
-    public SimpleMatrix buildSimpleMatrix(List<Eigenpair> listEigenpairs) {
-        double[][] matrixH = new double[listEigenpairs.size()][listEigenpairs.size()];
-        int i = 0;
+    public SimpleMatrix buildSimpleMatrix(List<Eigenpair> listEigenpairs, int k) {
+        int n = listEigenpairs.size();
+        double[][] matrixH = new double[n][n];
+        int m = 0;
 
+        loop:
         for (Eigenpair element : listEigenpairs) {
-            for(int j = 0; j < element.vector.data.length; j++){
-                double cell = element.vector.data[j];
-                matrixH[j][i] = cell;
-            }
-            i++;
+            matrixH[m] = element.vector.data;
+            m++;
         }
 
-        return new SimpleMatrix(matrixH);
+        double[][] result = new double[listEigenpairs.size()][k];
+        for(int i = 0; i < k; i++){
+            for(int j = 0; j < listEigenpairs.size(); j++){
+                result[j][i] = matrixH[i][j];
+            }
+        }
+
+
+        SimpleMatrix ms = new SimpleMatrix(result);
+        return ms;
     }
 
     public int bestClusterSizeK(List<Eigenpair> listEigenpairs) {
@@ -112,5 +120,18 @@ public class SpectralClustering {
         }
 
         return k;
+    }
+
+    public HashMap<Integer, ArrayList<Integer>> getCluster(DataSet data) {
+        LinkedList<Record> myRecords = data.getRecords();
+        HashMap<Integer, ArrayList<Integer>> result = new HashMap();
+        for(Record record: myRecords){
+            if(!result.containsKey(record.getClusterNo())){
+                result.put(record.getClusterNo(), new ArrayList<>());
+            }
+            result.get(record.getClusterNo()).add(record.getVertexId());
+        }
+
+        return result;
     }
 }

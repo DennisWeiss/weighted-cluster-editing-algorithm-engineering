@@ -16,21 +16,76 @@ public class DataSet {
     private final HashMap<String, Double> maximums = new HashMap<>();
     private static final Random random = new Random();
 
+/*
+    public DataSet(String csvFileName) throws IOException {
+
+        String row;
+        try(BufferedReader csvReader = new BufferedReader(new FileReader(csvFileName))) {
+            if((row = csvReader.readLine()) != null){
+                String[] data = row.split(",");
+                Collections.addAll(attrNames, data);
+            }
+
+            while ((row = csvReader.readLine()) != null) {
+                String[] data = row.split(",");
+
+                HashMap<String, Double> record = new HashMap<>();
+
+                if(attrNames.size() == data.length) {
+                    for (int i = 0; i < attrNames.size(); i++) {
+                        String name = attrNames.get(i);
+                        double val = Double.parseDouble(data[i]);
+                        record.put(name, val);
+                        updateMin(name, val);
+                        updateMax(name, val);
+                    }
+                } else{
+                    throw new IOException("Incorrectly formatted file.");
+                }
+
+                records.add(new Record(record, 1));
+            }
+
+        }
+    }*/
+
     public DataSet(SimpleMatrix simpleMatrix) {
         int rows = simpleMatrix.getMatrix().getNumRows();
         int cols = simpleMatrix.getMatrix().getNumCols();
-        HashMap<String, Double> record = new HashMap<>();
 
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < cols; j++){
-                double val = simpleMatrix.get(i,j);
-                String name = ""+i;
-                record.put(name, val);
-                updateMin(name, val);
-                updateMax(name, val);
-            }
-            records.add(new Record(record));
+        for(int i = 1; i < cols; i++){
+            attrNames.add(""+i);
         }
+
+        for(int j = 0; j < rows; j++){
+            HashMap<String, Double> record = new HashMap<>();
+
+                for (int i = 0; i < attrNames.size(); i++) {
+                    String name = attrNames.get(i);
+                    double val = simpleMatrix.get(j, i + 1);
+                    record.put(name, val);
+                    updateMin(name, val);
+                    updateMax(name, val);
+                }
+
+            records.add(new Record(record, j));
+        }
+    }
+
+
+    public void removeAttr(String attrName){
+        if(attrNames.contains(attrName)){
+            attrNames.remove(attrName);
+
+            for(var record : records){
+                record.getRecord().remove(attrName);
+            }
+
+            minimums.remove(attrName);
+
+            maximums.remove(attrName);
+        }
+
     }
 
     public void createCsvOutput(String outputFileName){
