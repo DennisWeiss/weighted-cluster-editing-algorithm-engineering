@@ -1,21 +1,19 @@
-#what this folder includes
-heuristic.jar
-ilp.jar
-csp.jar
-lib/common.jar
+# what you should download from Isis
+team3-heuristic.jar
+team3-ilp.jar
+team3-csp.jar
 
-#to install
-unzip team3.zip
-#go into the lib folder in our folder, e.g.
-cd team3/lib #or similar
-wget https://repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.1/protobuf-java-3.19.1.jar 
+# to install
+cd team3 #start where you downloaded our jar files into
+mkdir lib
+cd lib
 wget https://github.com/google/or-tools/releases/download/v9.2/or-tools_amd64_ubuntu-18.04_v9.2.9972.tar.gz
 tar xfz or-tools_amd64_ubuntu-18.04_v9.2.9972.tar.gz
 cd or-tools_Ubuntu-18.04-64bit_v9.2.9972
 unzip ortools-linux-x86-64-9.2.9972.jar -d extracted-jar
 
-#To execute
-cd team3 #it's probably mandatory to execute it from our folder
-java -cp "ilp.jar:lib/*" berlin.tu.algorithmengineering.ilp.LinearProgrammingMain #needed to include our common-jar
-java -cp "csp.jar:lib/*" berlin.tu.algorithmengineering.csp.ConstraintSatisfactionMain
-java -cp "heuristic.jar:lib/*" berlin.tu.algorithmengineering.heuristics.HeuristicMain
+# to execute
+cd team3 #it's probably mandatory to execute them from the folder containing our jars
+java -cp "team3-heuristic.jar:lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/*" berlin.tu.algorithmengineering.heuristics.HeuristicMain
+java -cp "team3-csp.jar:lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/*" berlin.tu.algorithmengineering.csp.ConstraintSatisfactionMain
+java -cp "team3-ilp.jar" berlin.tu.algorithmengineering.ilp.LinearProgrammingMain #needed because no main specified
