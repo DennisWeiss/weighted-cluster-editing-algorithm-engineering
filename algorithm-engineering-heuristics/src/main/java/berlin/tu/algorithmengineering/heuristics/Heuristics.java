@@ -135,26 +135,43 @@ public class Heuristics {
 
     public static boolean[][] getSpectralClusteringHeuristic(Graph graph) {
         Graph resultGraph = graph.copy();
+        Graph bestGraph = resultGraph.copy();
+
         SpectralClustering spectralClustering = new SpectralClustering(resultGraph.copy().getEdgeWeights());
         List<Eigenpair> listEigenpairs = spectralClustering.getEigenDecomposition();
 
-        int k = spectralClustering.bestClusterSizeK(listEigenpairs);
-        SimpleMatrix myH = spectralClustering.buildSimpleMatrix(listEigenpairs, k);
+        int backUpSolutionCost = Integer.MAX_VALUE;
 
-        DataSet data = new DataSet(myH);
+        //int k = spectralClustering.bestClusterSizeK(listEigenpairs);
 
-        // Call k means
-        kmeans(data, k);
+        for(int k = 1; k < graph.getNumberOfVertices()/2; k++) {
+            Graph oldGraph = resultGraph.copy();
 
-        // build clique cased on clustering
-        HashMap<Integer, ArrayList<Integer>> myCluster = spectralClustering.getCluster(data);
-        for (Map.Entry<Integer, ArrayList<Integer>> entry : myCluster.entrySet()) {
-            ArrayList<Integer> value = entry.getValue();
-            for(int i = 0; i < value.size(); i++){
-                applyChange(resultGraph.getEdgeExists(), value.get(i), value.get(0));
+            SimpleMatrix myH = spectralClustering.buildSimpleMatrix(listEigenpairs, k);
+            DataSet data = new DataSet(myH);
+
+            for(int l = 0; l < 2*k; l++){
+                // Call k means
+                kmeans(data, k);
+
+                // build clique cased on clustering
+                HashMap<Integer, ArrayList<Integer>> myCluster = spectralClustering.getCluster(data);
+                for (Map.Entry<Integer, ArrayList<Integer>> entry : myCluster.entrySet()) {
+                    ArrayList<Integer> value = entry.getValue();
+                    for (int i = 0; i < value.size(); i++) {
+                        applyChange(resultGraph.getEdgeExists(), value.get(i), value.get(0));
+                    }
+                }
+
+                int currentCost = Utils.getCostToChange(oldGraph, resultGraph.getEdgeExists());
+                if(currentCost < backUpSolutionCost){
+                    bestGraph = resultGraph.copy();
+                    backUpSolutionCost = currentCost;
+                }
+                resultGraph = oldGraph.copy();
             }
         }
-        return resultGraph.getEdgeExists();
+        return bestGraph.getEdgeExists();
     }
 
     public static EdgeDeletionsWithCost getGreedyHeuristicLp(Graph graph) {
