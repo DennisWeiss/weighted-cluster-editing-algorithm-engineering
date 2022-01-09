@@ -41,10 +41,10 @@ public class HeuristicMain {
 
         EdgeDeletionsWithCost edgeDeletionsWithCostFromHeuristic1 = null;
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 3; i++) {
 //            System.out.printf("#%d: Starting neighborhood heuristic after %dms\n", i, System.currentTimeMillis() - start);
 
-            int nHeuristicNeighborhood = 128;
+            int nHeuristicNeighborhood = 256;
 
             for (int j = 0; j < nHeuristicNeighborhood; j++) {
                 boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph.copy());
@@ -53,7 +53,7 @@ public class HeuristicMain {
 
 //            System.out.printf("#%d: Starting heuristic2 after %dms\n", i, System.currentTimeMillis() - start);
 
-            int nThreadHeuristic2Randomized2 = 4;
+            int nThreadHeuristic2Randomized2 = 8;
 
             for (int j = 0; j < nThreadHeuristic2Randomized2; j++) {
                 boolean[][] resultEdgeExists = Heuristics.getGreedyHeuristic2Randomized2(graph.copy(), 20, 10, 1.);
@@ -74,6 +74,13 @@ public class HeuristicMain {
                         Utils.getResultEdgeExistsFromEdgeDeletions(graph, edgeDeletionsWithCostFromHeuristic1),
                         i == 0 ? 10_000 : 30_000
                 );
+            }
+
+            int nThreadHeuristicSpectralClustering = 2;
+
+            for (int j = 0; j < nThreadHeuristicSpectralClustering; j++) {
+                boolean[][] resultEdgeExists = Heuristics.getSpectralClusteringHeuristic(graph.copy());
+                SimulatedAnnealing.performSimulatedAnnealing(graph, resultEdgeExists, 30_000);
             }
 
 //            System.out.printf("#%d: Starting heuristic2Thorough after %dms\n", i, System.currentTimeMillis() - start);

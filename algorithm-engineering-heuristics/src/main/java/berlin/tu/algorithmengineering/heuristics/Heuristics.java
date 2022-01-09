@@ -321,7 +321,7 @@ public class Heuristics {
             Edge edgeToAdd = edgesWithScore.poll().getEdge();
             int u = edgeToAdd.getA();
             int v = edgeToAdd.getB();
-            System.out.println("#edge weight="+graph.getEdgeWeights()[u][v]);
+//            System.out.println("#edge weight="+graph.getEdgeWeights()[u][v]);
 
             // calc how good or bad it would be to merge the cliques of u and v
             int costDifference = 0;
