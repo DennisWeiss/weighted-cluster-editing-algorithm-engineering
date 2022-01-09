@@ -150,7 +150,7 @@ public class Heuristics {
             SimpleMatrix myH = spectralClustering.buildSimpleMatrix(listEigenpairs, k);
             DataSet data = new DataSet(myH);
 
-            for(int l = 0; l < 2*k; l++){
+            for(int l = 0; l < 10; l++){
                 // Call k means
                 kmeans(data, k);
 

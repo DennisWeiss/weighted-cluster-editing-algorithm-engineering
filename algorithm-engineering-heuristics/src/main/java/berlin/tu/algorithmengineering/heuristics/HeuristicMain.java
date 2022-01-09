@@ -33,11 +33,11 @@ public class HeuristicMain {
         bestResultEdgeExists = Utils.copy(backUpEdgeExists, graph.getNumberOfVertices());
         bestCost = new AtomicInteger(backUpSolutionCost);
 
-        Signal.handle(new Signal("INT"), signal -> {
-            forceFinish.set(true);
-            System.out.println("#Calling print from interrupt thread");
-            printCurrentlyBestSolution(graph);
-        });
+//        Signal.handle(new Signal("INT"), signal -> {
+//            forceFinish.set(true);
+//            System.out.println("#Calling print from interrupt thread");
+//            printCurrentlyBestSolution(graph);
+//        });
 
         /*EdgeDeletionsWithCost edgeDeletionsWithCostFromHeuristic1 = null;
 

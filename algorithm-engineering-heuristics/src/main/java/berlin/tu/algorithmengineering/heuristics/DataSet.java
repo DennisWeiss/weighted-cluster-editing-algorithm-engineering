@@ -3,15 +3,13 @@ package berlin.tu.algorithmengineering.heuristics;
 import org.ejml.simple.SimpleMatrix;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Random;
+import java.util.*;
 
 public class DataSet {
 
-    private final LinkedList<String> attrNames = new LinkedList<>();
-    private final LinkedList<Record> records = new LinkedList<>();
-    private final LinkedList<Integer> indicesOfCentroids = new LinkedList<>();
+    private final List<String> attrNames = new ArrayList<>();
+    private final List<Record> records = new ArrayList<>();
+    private final List<Integer> indicesOfCentroids = new ArrayList<>();
     private final HashMap<String, Double> minimums = new HashMap<>();
     private final HashMap<String, Double> maximums = new HashMap<>();
     private static final Random random = new Random();
@@ -53,7 +51,9 @@ public class DataSet {
         int rows = simpleMatrix.getMatrix().getNumRows();
         int cols = simpleMatrix.getMatrix().getNumCols();
 
-        for(int i = 1; i < cols; i++){
+        int numberOfEigenvalues = Math.min(cols, 40);
+
+        for(int i = 1; i < numberOfEigenvalues; i++){
             attrNames.add(""+i);
         }
 
@@ -255,11 +255,11 @@ public class DataSet {
         return new HashMap<>();
     }
 
-    public LinkedList<String> getAttrNames() {
+    public List<String> getAttrNames() {
         return attrNames;
     }
 
-    public LinkedList<Record> getRecords() {
+    public List<Record> getRecords() {
         return records;
     }
 

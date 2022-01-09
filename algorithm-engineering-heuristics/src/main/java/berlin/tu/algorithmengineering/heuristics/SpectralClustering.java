@@ -123,7 +123,7 @@ public class SpectralClustering {
     }
 
     public HashMap<Integer, ArrayList<Integer>> getCluster(DataSet data) {
-        LinkedList<Record> myRecords = data.getRecords();
+        List<Record> myRecords = data.getRecords();
         HashMap<Integer, ArrayList<Integer>> result = new HashMap();
         for(Record record: myRecords){
             if(!result.containsKey(record.getClusterNo())){
