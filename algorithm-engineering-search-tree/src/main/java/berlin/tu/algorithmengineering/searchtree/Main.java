@@ -7,6 +7,10 @@ import berlin.tu.algorithmengineering.common.Utils;
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 import berlin.tu.algorithmengineering.common.model.OriginalWeightsInfo;
 import berlin.tu.algorithmengineering.common.model.P3;
+import berlin.tu.algorithmengineering.common.model.ResultEdgeExistsWithSolutionSize;
+import berlin.tu.algorithmengineering.heuristics.Heuristics;
+import berlin.tu.algorithmengineering.heuristics.SimulatedAnnealing;
+import berlin.tu.algorithmengineering.searchtree.lp.LpLowerBound;
 
 import java.util.List;
 import java.util.Stack;
@@ -22,12 +26,14 @@ public class Main {
     public static void main(String[] args) {
         Graph graph = Utils.readGraphFromConsoleInput();
 
-        boolean[][] resultEdgeExists = weightedClusterEditingBinarySearchInitial(graph);
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize = weightedClusterEditingOptim(graph);
 
-        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExists);
+        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExistsWithSolutionSize.getResultEdgeExists());
 
         System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
 
+        System.out.printf("#cost: %d\n", resultEdgeExistsWithSolutionSize.getSolutionSize());
+        System.out.printf("#output cost: %d\n", Utils.getCostToChange(graph, resultEdgeExistsWithSolutionSize.getResultEdgeExists()));
         System.out.printf("#recursive steps: %d\n", recursiveSteps);
     }
 
@@ -212,5 +218,80 @@ public class Main {
             return weightedClusterEditingBinarySearch(graph, lo, k);
         }
         return weightedClusterEditingBinarySearch(graph, k + 1, hi);
+    }
+
+    private static ResultEdgeExistsWithSolutionSize weightedClusterEditingOptim(Graph graph) {
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize = new ResultEdgeExistsWithSolutionSize(null, Integer.MAX_VALUE);
+
+        for (int i = 0; i < 64; i++) {
+            boolean[][] heuristicResultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph.copy());
+            int heuristicCost = Utils.getCostToChange(graph, heuristicResultEdgeExists);
+            if (heuristicCost < resultEdgeExistsWithSolutionSize.getSolutionSize()) {
+                resultEdgeExistsWithSolutionSize.setResultEdgeExists(heuristicResultEdgeExists);
+                resultEdgeExistsWithSolutionSize.setSolutionSize(heuristicCost);
+            }
+        }
+
+        SimulatedAnnealing.performSimulatedAnnealing(
+                graph, Utils.copy(resultEdgeExistsWithSolutionSize.getResultEdgeExists(), graph.getNumberOfVertices()), 20_000, resultEdgeExistsWithSolutionSize
+        );
+
+        return weightedClusterEditingOptim(
+                graph, 0, resultEdgeExistsWithSolutionSize.getResultEdgeExists(), resultEdgeExistsWithSolutionSize.getSolutionSize()
+        );
+    }
+
+    private static ResultEdgeExistsWithSolutionSize weightedClusterEditingOptim(Graph graph, int costToEdit,
+                                                                                boolean[][] upperBoundSolutionEdgeExists,
+                                                                                int upperBound) {
+        recursiveSteps++;
+
+        List<P3> p3List = graph.findAllP3();
+
+        if (costToEdit >= upperBound || costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
+            return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+        }
+
+//        P3 p3 = graph.findP3();
+
+        if (p3List.isEmpty()) {
+            return new ResultEdgeExistsWithSolutionSize(Utils.copy(graph.getEdgeExists(), graph.getNumberOfVertices()), costToEdit);
+        }
+
+        P3 p3 = getBiggestWeightP3(graph, p3List);
+
+        MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
+        ResultEdgeExistsWithSolutionSize solutionAfterMerge = weightedClusterEditingOptim(
+                graph, costToEdit + mergeVerticesInfo.getCost(), upperBoundSolutionEdgeExists, upperBound
+        );
+        if (solutionAfterMerge.getSolutionSize() < upperBound) {
+            upperBoundSolutionEdgeExists = Utils.reconstructMergeForResultEdgeExists(
+                    solutionAfterMerge.getResultEdgeExists(), graph, mergeVerticesInfo
+            );
+            upperBound = solutionAfterMerge.getSolutionSize();
+        }
+        graph.revertMergeVertices(mergeVerticesInfo);
+
+        graph.flipEdge(p3.getU(), p3.getV());
+        int costToFlip = graph.getEdgeWeights()[p3.getU()][p3.getV()];
+        graph.getEdgeWeights()[p3.getU()][p3.getV()] = FORBIDDEN_VALUE;
+        graph.getEdgeWeights()[p3.getV()][p3.getU()] = FORBIDDEN_VALUE;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getU()] += -FORBIDDEN_VALUE + costToFlip;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getV()] += -FORBIDDEN_VALUE + costToFlip;
+        ResultEdgeExistsWithSolutionSize solutionAfterDeletion = weightedClusterEditingOptim(
+                graph, costToEdit - costToFlip, upperBoundSolutionEdgeExists, upperBound
+        );
+        graph.getEdgeWeights()[p3.getU()][p3.getV()] = costToFlip;
+        graph.getEdgeWeights()[p3.getV()][p3.getU()] = costToFlip;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getU()] -= -FORBIDDEN_VALUE + costToFlip;
+        graph.getAbsoluteNeighborhoodWeights()[p3.getV()] -= -FORBIDDEN_VALUE + costToFlip;
+        graph.flipEdge(p3.getU(), p3.getV());
+
+        if (solutionAfterDeletion.getSolutionSize() < upperBound) {
+            upperBoundSolutionEdgeExists = solutionAfterDeletion.getResultEdgeExists();
+            upperBound = solutionAfterDeletion.getSolutionSize();
+        }
+
+        return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
     }
 }

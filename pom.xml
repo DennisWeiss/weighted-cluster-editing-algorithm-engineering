@@ -109,6 +109,21 @@
                             <generatePom>true</generatePom>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>gurobi-dependency</id>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <groupId>com.gurobi</groupId>
+                            <artifactId>gurobi</artifactId>
+                            <version>8.11.0</version>
+                            <file>${basedir}/lib/gurobi.jar</file>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
         </plugins>

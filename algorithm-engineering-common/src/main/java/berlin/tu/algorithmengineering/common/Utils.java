@@ -11,10 +11,11 @@ import java.io.InputStreamReader;
 import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Utils {
+
+    public static final Random RANDOM = new Random(1337);
 
     public static boolean[][] reconstructMergeForResultEdgeExists(boolean[][] resultEdgeExists, Graph graph, MergeVerticesInfo mergeVerticesInfo) {
         boolean[][] resultEdgeExistsCopy = copy(resultEdgeExists, graph.getNumberOfVertices() + 1);
@@ -202,7 +203,7 @@ public class Utils {
      * @return random integer
      */
     public static int randInt(int from, int to) {
-        return (int) ((to - from) * Math.random() + from);
+        return (int) ((to - from) * RANDOM.nextDouble() + from);
     }
 
     public static int[] getIntArrayInRange(int to) {
@@ -218,9 +219,8 @@ public class Utils {
     }
 
     public static void shuffleArray(int[] ar) {
-        Random random = ThreadLocalRandom.current();
         for (int i = ar.length - 1; i > 0; i--) {
-            int index = random.nextInt(i + 1);
+            int index = RANDOM.nextInt(i + 1);
             // Simple swap
             int a = ar[index];
             ar[index] = ar[i];

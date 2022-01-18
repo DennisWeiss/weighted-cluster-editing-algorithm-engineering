@@ -3,6 +3,7 @@ package berlin.tu.algorithmengineering.heuristics;
 
 import berlin.tu.algorithmengineering.common.Graph;
 import berlin.tu.algorithmengineering.common.Utils;
+import berlin.tu.algorithmengineering.common.model.ResultEdgeExistsWithSolutionSize;
 import berlin.tu.algorithmengineering.heuristics.thread.Solution;
 
 public class SimulatedAnnealing {
@@ -41,6 +42,35 @@ public class SimulatedAnnealing {
                 if (cost < HeuristicMain.bestCost.get()) {
                     HeuristicMain.bestResultEdgeExists = Utils.copy(resultEdgeExists,graph.getNumberOfVertices());
                     HeuristicMain.bestCost.set(cost);
+                }
+            }
+        }
+    }
+
+    public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists,
+                                                 int iterations,
+                                                 ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize) {
+        int cost = Utils.getCostToChange(graph, resultEdgeExists);
+        if (cost < resultEdgeExistsWithSolutionSize.getSolutionSize()) {
+            resultEdgeExistsWithSolutionSize.setResultEdgeExists(Utils.copy(resultEdgeExists, graph.getNumberOfVertices()));
+            resultEdgeExistsWithSolutionSize.setSolutionSize(cost);
+        }
+
+        double t = T;
+
+        for (int i = 0; i < iterations; i++) {
+            int vertex = Utils.randInt(0, graph.getNumberOfVertices());
+            int moveToVertex = Utils.randInt(0, graph.getNumberOfVertices());
+
+            int deltaCost = getDeltaCost(graph, resultEdgeExists, vertex, moveToVertex);
+            double probabilityOfBetterSolution = getProbabilityOfBetterSolution(deltaCost, t);
+            t -= 1. / iterations;
+            if (probabilityOfBetterSolution == 1 || probabilityOfBetterSolution > Utils.RANDOM.nextDouble()) {
+                applyChange(resultEdgeExists, vertex, moveToVertex);
+                cost += deltaCost;
+                if (cost < resultEdgeExistsWithSolutionSize.getSolutionSize()) {
+                    resultEdgeExistsWithSolutionSize.setResultEdgeExists(Utils.copy(resultEdgeExists, graph.getNumberOfVertices()));
+                    resultEdgeExistsWithSolutionSize.setSolutionSize(cost);
                 }
             }
         }

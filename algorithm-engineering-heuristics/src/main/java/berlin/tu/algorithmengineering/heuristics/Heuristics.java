@@ -8,6 +8,7 @@ import berlin.tu.algorithmengineering.common.model.P3;
 import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithCost;
 import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreDouble;
 import berlin.tu.algorithmengineering.common.model.heuristics.EdgeWithScoreInt;
+import com.google.ortools.Loader;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
 import com.google.ortools.linearsolver.MPSolver;
@@ -22,15 +23,15 @@ import java.util.*;
 public class Heuristics {
 
     static {
-        //Loader.loadNativeLibraries();
-        String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-        if (os.equals("mac os x")) { // only for MAC local
-            System.load("/Applications/or-tools_MacOsX-12.0.1_v9.2.9972/ortools-darwin-x86-64/libjniortools.dylib");
-        } else {
-            File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
-            String absolutePath = file.getAbsolutePath();
-            System.load(absolutePath);
-        }
+        Loader.loadNativeLibraries();
+//        String os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+//        if (os.equals("mac os x")) { // only for MAC local
+//            System.load("/Applications/or-tools_MacOsX-12.0.1_v9.2.9972/ortools-darwin-x86-64/libjniortools.dylib");
+//        } else {
+//            File file = new File("lib/or-tools_Ubuntu-18.04-64bit_v9.2.9972/extracted-jar/ortools-linux-x86-64/libjniortools.so");
+//            String absolutePath = file.getAbsolutePath();
+//            System.load(absolutePath);
+//        }
     }
 
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
