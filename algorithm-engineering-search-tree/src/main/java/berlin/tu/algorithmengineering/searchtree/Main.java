@@ -12,8 +12,7 @@ import berlin.tu.algorithmengineering.heuristics.Heuristics;
 import berlin.tu.algorithmengineering.heuristics.SimulatedAnnealing;
 import berlin.tu.algorithmengineering.searchtree.lp.LpLowerBound;
 
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class Main {
 
@@ -30,11 +29,15 @@ public class Main {
 
         boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExistsWithSolutionSize.getResultEdgeExists());
 
+//        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()]);
+
         System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
 
         System.out.printf("#cost: %d\n", resultEdgeExistsWithSolutionSize.getSolutionSize());
         System.out.printf("#output cost: %d\n", Utils.getCostToChange(graph, resultEdgeExistsWithSolutionSize.getResultEdgeExists()));
+
         System.out.printf("#recursive steps: %d\n", recursiveSteps);
+//        System.out.printf("#recursive steps: %d\n", graph.getLowerBound2(graph.findAllP3()));
     }
 
     private static boolean[][] weightedClusterEditingBranch(Graph graph, int k) {
@@ -220,11 +223,11 @@ public class Main {
         return weightedClusterEditingBinarySearch(graph, k + 1, hi);
     }
 
-    private static ResultEdgeExistsWithSolutionSize weightedClusterEditingOptim(Graph graph) {
+    private static ResultEdgeExistsWithSolutionSize getUpperBound(Graph graph, int iter, boolean simulatedAnnealing) {
         ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize = new ResultEdgeExistsWithSolutionSize(null, Integer.MAX_VALUE);
 
-        for (int i = 0; i < 64; i++) {
-            boolean[][] heuristicResultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph.copy());
+        for (int i = 0; i < iter; i++) {
+            boolean[][] heuristicResultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph);
             int heuristicCost = Utils.getCostToChange(graph, heuristicResultEdgeExists);
             if (heuristicCost < resultEdgeExistsWithSolutionSize.getSolutionSize()) {
                 resultEdgeExistsWithSolutionSize.setResultEdgeExists(heuristicResultEdgeExists);
@@ -232,12 +235,21 @@ public class Main {
             }
         }
 
-        SimulatedAnnealing.performSimulatedAnnealing(
-                graph, Utils.copy(resultEdgeExistsWithSolutionSize.getResultEdgeExists(), graph.getNumberOfVertices()), 20_000, resultEdgeExistsWithSolutionSize
-        );
+        if (simulatedAnnealing) {
+            SimulatedAnnealing.performSimulatedAnnealing(
+                    graph, Utils.copy(resultEdgeExistsWithSolutionSize.getResultEdgeExists(), graph.getNumberOfVertices()), 20_000, resultEdgeExistsWithSolutionSize
+            );
+        }
+
+        return resultEdgeExistsWithSolutionSize;
+    }
+
+    private static ResultEdgeExistsWithSolutionSize weightedClusterEditingOptim(Graph graph) {
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(graph, 32, true);
 
         return weightedClusterEditingOptim(
-                graph, 0, resultEdgeExistsWithSolutionSize.getResultEdgeExists(), resultEdgeExistsWithSolutionSize.getSolutionSize()
+                graph, 0, resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists(),
+                resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()
         );
     }
 
@@ -246,9 +258,54 @@ public class Main {
                                                                                 int upperBound) {
         recursiveSteps++;
 
+        if (costToEdit >= upperBound) {
+            return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+        }
+
+//        Set<Set<Integer>> connectedComponents = graph.getConnectedComponents();
+//        if (connectedComponents.size() > 1) {
+//            int[] vertexToConnectedComponentIndex = graph.getVertexToConnectedComponentIndex();
+//            boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+//
+//            for (int i = 0; i < connectedComponents.size(); i++) {
+//                Integer[] subGraphIndices = Utils.getSubGraphIndices(vertexToConnectedComponentIndex, i);
+//                Graph subGraph = graph.getSubGraph(subGraphIndices);
+//
+//                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(subGraph, 4, false);
+//                boolean[][] parentUpperBoundEdgeExists = getEdgeExistsOfSubGraph(upperBoundSolutionEdgeExists, subGraphIndices);
+//                int parentUpperBoundCost = Utils.getCostToChange(subGraph, parentUpperBoundEdgeExists);
+//                if (parentUpperBoundCost < resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()) {
+//                    resultEdgeExistsWithSolutionSizeOfUpperBound.setResultEdgeExists(parentUpperBoundEdgeExists);
+//                    resultEdgeExistsWithSolutionSizeOfUpperBound.setSolutionSize(parentUpperBoundCost);
+//                }
+//
+//                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfSubGraph =
+//                        weightedClusterEditingOptim(
+//                                subGraph, 0, resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists(),
+//                                resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()
+//                        );
+//
+//                costToEdit += resultEdgeExistsWithSolutionSizeOfSubGraph.getSolutionSize();
+//                if (costToEdit >= upperBound) {
+//                    return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+//                }
+//
+//                for (int j = 0; j < subGraph.getNumberOfVertices(); j++) {
+//                    for (int k = j+1; k < subGraph.getNumberOfVertices(); k++) {
+//                        if (resultEdgeExistsWithSolutionSizeOfSubGraph.getResultEdgeExists()[j][k]) {
+//                            resultEdgeExists[subGraphIndices[j]][subGraphIndices[k]] = true;
+//                            resultEdgeExists[subGraphIndices[k]][subGraphIndices[j]] = true;
+//                        }
+//                    }
+//                }
+//            }
+//
+//            return new ResultEdgeExistsWithSolutionSize(resultEdgeExists, costToEdit);
+//        }
+
         List<P3> p3List = graph.findAllP3();
 
-        if (costToEdit >= upperBound || costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
+        if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
             return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
         }
 
@@ -293,5 +350,15 @@ public class Main {
         }
 
         return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+    }
+
+    private static boolean[][] getEdgeExistsOfSubGraph(boolean[][] parentEdgeExists, Integer[] subGraphIndices) {
+        boolean[][] edgeExists = new boolean[subGraphIndices.length][subGraphIndices.length];
+        for (int i = 0; i < subGraphIndices.length; i++) {
+            for (int j = 0; j < subGraphIndices.length; j++) {
+                edgeExists[i][j] = parentEdgeExists[subGraphIndices[i]][subGraphIndices[j]];
+            }
+        }
+        return edgeExists;
     }
 }

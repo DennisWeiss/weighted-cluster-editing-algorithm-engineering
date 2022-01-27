@@ -64,9 +64,9 @@ public class Graph {
     }
 
     public Graph copy() {
-        Graph copy = new Graph(edgeWeights.length);
-        for (int i = 0; i < edgeWeights.length; i++) {
-            for (int j = 0; j < edgeWeights.length; j++) {
+        Graph copy = new Graph(numberOfVertices);
+        for (int i = 0; i < numberOfVertices; i++) {
+            for (int j = 0; j < numberOfVertices; j++) {
                 copy.getEdgeWeights()[i][j] = edgeWeights[i][j];
                 copy.getEdgeExists()[i][j] = edgeExists[i][j];
             }
@@ -272,6 +272,20 @@ public class Graph {
         return graph;
     }
 
+    public Graph getSubGraph(Integer[] subGraphIndices) {
+        Graph graph = new Graph(subGraphIndices.length);
+        for (int i = 0; i < subGraphIndices.length; i++) {
+            for (int j = 0; j < subGraphIndices.length; j++) {
+                graph.getEdgeWeights()[i][j] = edgeWeights[subGraphIndices[i]][subGraphIndices[j]];
+                graph.getEdgeExists()[i][j] = edgeExists[subGraphIndices[i]][subGraphIndices[j]];
+            }
+        }
+        graph.computeNeighborhoodWeights();
+        graph.computeAbsoluteNeighborhoodWeights();
+
+        return graph;
+    }
+
     public Graph getSubGraph(List<Integer> subGraphIndices) {
         Graph graph = new Graph(subGraphIndices.size());
         for (int i = 0; i < subGraphIndices.size(); i++) {
@@ -368,8 +382,10 @@ public class Graph {
     public int getLowerBound2(List<P3> p3List) {
         List<P3> sortedP3List = new ArrayList<>(p3List);
         sortedP3List.sort((a, b) -> getSmallestAbsoluteWeight(b) - getSmallestAbsoluteWeight(a));
+
         boolean[][] isInEdgeDisjointP3List = new boolean[numberOfVertices][numberOfVertices];
         int lowerBound = 0;
+
         for (P3 p3 : sortedP3List) {
             if (!isInEdgeDisjointP3List[p3.getU()][p3.getV()] && !isInEdgeDisjointP3List[p3.getV()][p3.getW()] && !isInEdgeDisjointP3List[p3.getU()][p3.getW()]) {
                 lowerBound += getSmallestAbsoluteWeight(p3);
@@ -381,6 +397,7 @@ public class Graph {
                 isInEdgeDisjointP3List[p3.getW()][p3.getU()] = true;
             }
         }
+
         return lowerBound;
     }
 
@@ -460,8 +477,12 @@ public class Graph {
         }
     }
 
-    private int[] getVertexToConnectedComponentIndex() {
+    public int[] getVertexToConnectedComponentIndex() {
         return getVertexToConnectedComponentIndex(getConnectedComponents(), numberOfVertices);
+    }
+
+    public int[] getVertexToConnectedComponentIndex(Set<Set<Integer>> connectedComponents) {
+        return getVertexToConnectedComponentIndex(connectedComponents, numberOfVertices);
     }
 
     public static int[] getVertexToConnectedComponentIndex(Set<Set<Integer>> connectedComponents, int numberOfVertices) {

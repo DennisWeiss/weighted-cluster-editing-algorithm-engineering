@@ -8,6 +8,8 @@ import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithC
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -237,5 +239,16 @@ public class Utils {
         return resultGraph.getEdgeExists();
     }
 
+    public static Integer[] getSubGraphIndices(int[] vertexToConnectedComponentIndex, int connectedComponentIndex) {
+        List<Integer> subGraphIndices = new ArrayList<>();
+        for (int i = 0; i < vertexToConnectedComponentIndex.length; i++) {
+            if (vertexToConnectedComponentIndex[i] == connectedComponentIndex) {
+                subGraphIndices.add(i);
+            }
+        }
+        Integer[] subGraphIndicesArr = new Integer[subGraphIndices.size()];
+        subGraphIndices.toArray(subGraphIndicesArr);
+        return subGraphIndicesArr;
+    }
 
 }

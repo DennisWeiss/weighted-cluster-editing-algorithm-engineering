@@ -1,11 +1,14 @@
 package berlin.tu.algorithmengineering.searchtree.lp;
 
 import berlin.tu.algorithmengineering.common.Graph;
+import berlin.tu.algorithmengineering.common.Utils;
 import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
 import com.google.ortools.linearsolver.MPSolver;
 import com.google.ortools.linearsolver.MPVariable;
 import gurobi.*;
+
+import java.util.Set;
 
 
 public class LpLowerBound {
@@ -68,6 +71,37 @@ public class LpLowerBound {
             e.printStackTrace();
         }
         return Double.MAX_VALUE;
+    }
+
+    public static double getLowerBoundSubGraphs(Graph graph) {
+        final int SUB_GRAPH_SIZE = 50;
+
+        Set<Set<Integer>> connectedComponents = graph.getConnectedComponents();
+
+        if (connectedComponents.size() == 1) {
+            if (graph.getNumberOfVertices() <= SUB_GRAPH_SIZE) {
+                return getLowerBoundOrTools(graph);
+            }
+            int lowerBound = 0;
+            for (int i = 0; i < graph.getNumberOfVertices(); i += SUB_GRAPH_SIZE) {
+                int[] subGraphIndices = Utils.getIntArrayInRange(i, Math.min(i + SUB_GRAPH_SIZE, graph.getNumberOfVertices()));
+                Graph subGraph = graph.getSubGraph(subGraphIndices);
+                lowerBound += getLowerBoundSubGraphs(subGraph);
+            }
+            return lowerBound;
+        }
+
+        int[] vertexToConnectedComponentIndex = graph.getVertexToConnectedComponentIndex(connectedComponents);
+
+        int lowerBound = 0;
+
+        for (int i = 0; i < connectedComponents.size(); i++) {
+            Integer[] subGraphIndices = Utils.getSubGraphIndices(vertexToConnectedComponentIndex, i);
+            Graph subGraph = graph.getSubGraph(subGraphIndices);
+            lowerBound += getLowerBoundSubGraphs(subGraph);
+        }
+
+        return lowerBound;
     }
 
     public static double getLowerBoundOrTools(Graph graph) {
