@@ -8,10 +8,7 @@ import berlin.tu.algorithmengineering.common.model.heuristics.EdgeDeletionsWithC
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -251,4 +248,16 @@ public class Utils {
         return subGraphIndicesArr;
     }
 
+    public static <T> T getRandomElementFromSet(Set<T> set) {
+        int index = randInt(0, set.size());
+        Iterator<T> iterator = set.iterator();
+        T elm = null;
+        if (!set.isEmpty()) {
+            elm = iterator.next();
+        }
+        for (int i = 0; i < index; i++) {
+            elm = iterator.next();
+        }
+        return elm;
+    }
 }

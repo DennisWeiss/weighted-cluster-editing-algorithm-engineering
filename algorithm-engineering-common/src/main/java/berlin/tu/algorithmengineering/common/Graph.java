@@ -3,6 +3,7 @@ package berlin.tu.algorithmengineering.common;
 
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 import berlin.tu.algorithmengineering.common.model.P3;
+import berlin.tu.algorithmengineering.common.model.P3WithSharedEdgeP3s;
 
 import java.util.*;
 
@@ -399,6 +400,118 @@ public class Graph {
         }
 
         return lowerBound;
+    }
+
+    public int getLowerBound2BasedOnMaximumWeightIndependentSet(List<P3> p3List) {
+        Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap = P3WithSharedEdgeP3s.fromP3List(this, p3List);
+        Set<P3> freeP3s = new HashSet<>(p3List);
+        Set<P3> selectedP3s = new HashSet<>();
+
+        createInitialSelection(p3WithSharedEdgeP3sMap, freeP3s, selectedP3s);
+
+        return performSimulatedAnnealingOnMaximumWeightIndependentSetOfP3s(p3WithSharedEdgeP3sMap, freeP3s, selectedP3s);
+    }
+
+    private int getSumOfSmallestAbsoluteWeights(Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap, Set<P3> p3Set) {
+        int lowerBound = 0;
+        for (P3 p3 : p3Set) {
+            lowerBound += p3WithSharedEdgeP3sMap.get(p3).getSmallestAbsoluteEdgeWeight();
+        }
+
+        return lowerBound;
+    }
+
+    private void createInitialSelection(Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap, Set<P3> freeP3s, Set<P3> selectedP3s) {
+        while (!freeP3s.isEmpty()) {
+            P3 p3 = freeP3s.iterator().next();
+            freeP3s.remove(p3);
+            selectedP3s.add(p3);
+            for (P3 otherP3 : p3WithSharedEdgeP3sMap.get(p3).getSharedEdgeP3()) {
+                if (freeP3s.contains(otherP3)) {
+                    freeP3s.remove(otherP3);
+                }
+            }
+        }
+    }
+
+    private int performSimulatedAnnealingOnMaximumWeightIndependentSetOfP3s(
+            Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap, Set<P3> freeP3s, Set<P3> selectedP3s
+    ) {
+        final double T_START = 2;
+        double t = T_START;
+        final int ITERATIONS = 200;
+
+        int currentSolution = getSumOfSmallestAbsoluteWeights(p3WithSharedEdgeP3sMap, selectedP3s);
+        int highestSolution = currentSolution;
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            Set<P3> perturbedSelection = new HashSet<>(selectedP3s);
+            int deltaSolution = perturbSelection(p3WithSharedEdgeP3sMap, perturbedSelection);
+            if (deltaSolution >= 0 || Math.random() < Math.exp(deltaSolution / t)) {
+                currentSolution += deltaSolution;
+                if (currentSolution > highestSolution) {
+                    highestSolution = currentSolution;
+                }
+                selectedP3s = perturbedSelection;
+            }
+            t -= T_START / ITERATIONS;
+        }
+
+        return highestSolution;
+    }
+
+    /**
+     *
+     * @param p3WithSharedEdgeP3sMap
+     * @param freeP3s
+     * @param selectedP3s
+     * @return deltaSolution
+     */
+    private int perturbSelection(Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap, Set<P3> selectedP3s) {
+        if (selectedP3s.isEmpty()) {
+            return 0;
+        }
+
+        P3 removedP3 = Utils.getRandomElementFromSet(selectedP3s);
+
+        selectedP3s.remove(removedP3);
+        int deltaSolution = -p3WithSharedEdgeP3sMap.get(removedP3).getSmallestAbsoluteEdgeWeight();
+
+        Set<P3> freeP3s = getFreeP3sAdjacentToP3(p3WithSharedEdgeP3sMap, removedP3, selectedP3s);
+
+        while (!freeP3s.isEmpty()) {
+            P3 p3 = Utils.getRandomElementFromSet(freeP3s);
+            freeP3s.remove(p3);
+            selectedP3s.add(p3);
+            P3WithSharedEdgeP3s p3WithSharedEdgeP3s = p3WithSharedEdgeP3sMap.get(p3);
+            deltaSolution += p3WithSharedEdgeP3s.getSmallestAbsoluteEdgeWeight();
+            for (P3 otherP3 : p3WithSharedEdgeP3s.getSharedEdgeP3()) {
+                if (freeP3s.contains(otherP3)) {
+                    freeP3s.remove(otherP3);
+                }
+            }
+        }
+
+        return deltaSolution;
+    }
+
+    private Set<P3> getFreeP3sAdjacentToP3(Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap, P3 p3, Set<P3> selectedP3s) {
+        Set<P3> freeP3sAdjacentToP3 = new HashSet<>();
+
+        for (P3 otherP3 : p3WithSharedEdgeP3sMap.get(p3).getSharedEdgeP3()) {
+            boolean isFree = true;
+            for (P3 otherP3_2 : p3WithSharedEdgeP3sMap.get(otherP3).getSharedEdgeP3()) {
+                if (selectedP3s.contains(otherP3_2)) {
+                    isFree = false;
+                    break;
+                }
+            }
+            if (isFree) {
+                freeP3sAdjacentToP3.add(otherP3);
+            }
+        }
+
+        return freeP3sAdjacentToP3;
     }
 
     public int getWeightedDegreeCut(int u) {
