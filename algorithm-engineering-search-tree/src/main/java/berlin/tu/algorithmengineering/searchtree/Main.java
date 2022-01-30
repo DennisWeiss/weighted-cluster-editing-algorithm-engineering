@@ -273,7 +273,7 @@ public class Main {
         }
 
         // call recursively for all connected components
-        ArrayList<ArrayList<Integer>> connectedComponents = graph.computeConnectedComponents();
+        ArrayList<ArrayList<Integer>> connectedComponents = graph.getConnectedComponents();
         if (connectedComponents.size() > 1) {
             boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
 

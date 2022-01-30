@@ -83,7 +83,7 @@ public class Heuristics {
             }
         }
 
-        Set<Set<Integer>> connectedComponents;
+        ArrayList<ArrayList<Integer>> connectedComponents;
 
         while ((connectedComponents = graph.getConnectedComponents()).size() < 2) {
             EdgeWithScoreInt edgeToRemove = edgesWithScore.poll();
@@ -105,8 +105,7 @@ public class Heuristics {
             return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
         }
 
-        Iterator<Set<Integer>> connectedComponentsIterator = connectedComponents.iterator();
-        ArrayList<Integer> subGraphIndices1 = new ArrayList<>(connectedComponentsIterator.next());
+        ArrayList<Integer> subGraphIndices1 = connectedComponents.get(0);
         Graph subGraph = graph.getSubGraph(subGraphIndices1);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph1 = getGreedyHeuristic1(subGraph);
@@ -114,7 +113,7 @@ public class Heuristics {
             return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
         }
 
-        ArrayList<Integer> subGraphIndices2 = new ArrayList<>(connectedComponentsIterator.next());
+        ArrayList<Integer> subGraphIndices2 = connectedComponents.get(1);
         subGraph = graph.getSubGraph(subGraphIndices2);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph2 = getGreedyHeuristic1(subGraph);
@@ -193,7 +192,7 @@ public class Heuristics {
             }
         }
 
-        Set<Set<Integer>> connectedComponents;
+        ArrayList<ArrayList<Integer>> connectedComponents;
 
         while ((connectedComponents = graph.getConnectedComponents()).size() < 2) {
             EdgeWithScoreDouble edgeToRemove = edgesWithScore.poll();
@@ -215,8 +214,7 @@ public class Heuristics {
             return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
         }
 
-        Iterator<Set<Integer>> connectedComponentsIterator = connectedComponents.iterator();
-        ArrayList<Integer> subGraphIndices1 = new ArrayList<>(connectedComponentsIterator.next());
+        ArrayList<Integer> subGraphIndices1 = connectedComponents.get(0);
         Graph subGraph = graph.getSubGraph(subGraphIndices1);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph1 = getGreedyHeuristicLp(subGraph);
@@ -224,7 +222,7 @@ public class Heuristics {
             return new EdgeDeletionsWithCost(new HashSet<>(), transitiveClosureCost);
         }
 
-        ArrayList<Integer> subGraphIndices2 = new ArrayList<>(connectedComponentsIterator.next());
+        ArrayList<Integer> subGraphIndices2 = connectedComponents.get(1);
         subGraph = graph.getSubGraph(subGraphIndices2);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph2 = getGreedyHeuristicLp(subGraph);
@@ -434,35 +432,17 @@ public class Heuristics {
         return resultEdgeExists;
     }
 
-    private static Set<Set<Integer>> getConnectedComponentsOfResultEdgeExists(boolean[][] resultEdgeExists) {
-        Set<Integer> visitedVertices = new HashSet<>();
-        Set<Set<Integer>> connectedComponents = new HashSet<>();
-        for (int i = 0; i < resultEdgeExists.length; i++) {
-            if (!visitedVertices.contains(i)) {
-                Set<Integer> connectedComponent = getConnectedComponentOfResultEdgeExists(i, resultEdgeExists);
-                visitedVertices.addAll(connectedComponent);
-                connectedComponents.add(connectedComponent);
-            }
-        }
-        return connectedComponents;
-    }
-
-    public static Set<Integer> getConnectedComponentOfResultEdgeExists(int vertex, boolean[][] resultEdgeExists) {
-        return getConnectedComponentOfResultEdgeExists(vertex, new HashSet<>(), resultEdgeExists);
-    }
-
-    private static Set<Integer> getConnectedComponentOfResultEdgeExists(int vertex, Set<Integer> connectedComponent, boolean[][] resultEdgeExists) {
+    public static ArrayList<Integer> getConnectedComponentOfResultEdgeExists(int vertex, boolean[][] resultEdgeExists) {
+        ArrayList<Integer> connectedComponent = new ArrayList<>();
         connectedComponent.add(vertex);
-        for (int i = 0; i < resultEdgeExists.length; i++) {
-            if (vertex != i && resultEdgeExists[vertex][i] && !connectedComponent.contains(i)) {
-                connectedComponent.addAll(getConnectedComponentOfResultEdgeExists(i, connectedComponent, resultEdgeExists));
-            }
-        }
-        return connectedComponent;
+        boolean[] visitedVertex = new boolean[resultEdgeExists.length];
+        visitedVertex[vertex] = true;
+        return Graph.getConnectedComponentOfVertex(vertex, connectedComponent, visitedVertex, resultEdgeExists, resultEdgeExists.length);
     }
 
     private static int[] getVertexToConnectedComponentIndexOfResultEdgeExists(boolean[][] resultEdgeExists) {
-        return Graph.getVertexToConnectedComponentIndex(getConnectedComponentsOfResultEdgeExists(resultEdgeExists), resultEdgeExists.length);
+        ArrayList<ArrayList<Integer>> connectedComponents = Graph.computeConnectedComponents(resultEdgeExists,resultEdgeExists.length);
+        return Graph.getVertexToConnectedComponentIndex(connectedComponents, resultEdgeExists.length);
     }
 
     private static int getCost(Graph graph, boolean[][] resultEdgeExists) {

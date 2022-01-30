@@ -533,7 +533,12 @@ public class Graph {
         return edgeExists;
     }
 
-    public ArrayList<ArrayList<Integer>> computeConnectedComponents() {
+
+    public ArrayList<ArrayList<Integer>> getConnectedComponents() {
+        return computeConnectedComponents(edgeExists, numberOfVertices);
+    }
+
+    public static ArrayList<ArrayList<Integer>> computeConnectedComponents(boolean[][] edgeExists, int numberOfVertices) {
         boolean[] visitedVertex = new boolean[numberOfVertices];
         ArrayList<ArrayList<Integer>> connectedComponents = new ArrayList<>();
         for (int i = 0; i < numberOfVertices; i++) {
@@ -541,46 +546,21 @@ public class Graph {
                 ArrayList<Integer> connectedComponent = new ArrayList<>();
                 connectedComponent.add(i);
                 visitedVertex[i] = true;
-                getConnectedComponentOfVertex(i, connectedComponent, visitedVertex);
+                getConnectedComponentOfVertex(i, connectedComponent, visitedVertex, edgeExists, numberOfVertices);
                 connectedComponent.trimToSize();// will never increase again
                 connectedComponents.add(connectedComponent);
             }
         }
         return connectedComponents;
     }
-    private ArrayList<Integer> getConnectedComponentOfVertex(int vertex, ArrayList<Integer> connectedComponent, boolean[] visitedVertex) {
+    public static ArrayList<Integer> getConnectedComponentOfVertex(
+            int vertex, ArrayList<Integer> connectedComponent, boolean[] visitedVertex,
+            boolean[][] edgeExists, int numberOfVertices) {
         for (int i = 0; i < numberOfVertices; i++) {
             if (vertex != i && edgeExists[vertex][i] && !visitedVertex[(i)]) {
                 connectedComponent.add(i);
                 visitedVertex[i] = true;
-                getConnectedComponentOfVertex(i, connectedComponent, visitedVertex);
-            }
-        }
-        return connectedComponent;
-    }
-
-    public Set<Set<Integer>> getConnectedComponents() {
-        Set<Integer> visitedVertices = new HashSet<>();
-        Set<Set<Integer>> connectedComponents = new HashSet<>();
-        for (int i = 0; i < numberOfVertices; i++) {
-            if (!visitedVertices.contains(i)) {
-                Set<Integer> connectedComponent = getConnectedComponent(i);
-                visitedVertices.addAll(connectedComponent);
-                connectedComponents.add(connectedComponent);
-            }
-        }
-        return connectedComponents;
-    }
-
-    public Set<Integer> getConnectedComponent(int vertex) {
-        return getConnectedComponent(vertex, new HashSet<>());
-    }
-
-    private Set<Integer> getConnectedComponent(int vertex, Set<Integer> connectedComponent) {
-        connectedComponent.add(vertex);
-        for (int i = 0; i < numberOfVertices; i++) {
-            if (vertex != i && edgeExists[vertex][i] && !connectedComponent.contains(i)) {
-                connectedComponent.addAll(getConnectedComponent(i, connectedComponent));
+                getConnectedComponentOfVertex(i, connectedComponent, visitedVertex, edgeExists, numberOfVertices);
             }
         }
         return connectedComponent;
@@ -620,14 +600,10 @@ public class Graph {
         return getVertexToConnectedComponentIndex(getConnectedComponents(), numberOfVertices);
     }
 
-    public int[] getVertexToConnectedComponentIndex(Set<Set<Integer>> connectedComponents) {
-        return getVertexToConnectedComponentIndex(connectedComponents, numberOfVertices);
-    }
-
-    public static int[] getVertexToConnectedComponentIndex(Set<Set<Integer>> connectedComponents, int numberOfVertices) {
+    public static int[] getVertexToConnectedComponentIndex(ArrayList<ArrayList<Integer>> connectedComponents, int numberOfVertices) {
         int index = 0;
         int[] vertexToConnectedComponentIndex = new int[numberOfVertices];
-        for (Set<Integer> connectedComponent : connectedComponents) {
+        for (ArrayList<Integer> connectedComponent : connectedComponents) {
             for (Integer vertex : connectedComponent) {
                 vertexToConnectedComponentIndex[vertex] = index;
             }

@@ -314,11 +314,11 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
 
-        Set<Set<Integer>> connectedComponents = graph.getConnectedComponents();
+        ArrayList<ArrayList<Integer>> connectedComponents = graph.getConnectedComponents();
 
         assertThat(connectedComponents).hasSize(2);
         int sum = 0;
-        for (Set<Integer> connectedComponent : connectedComponents) {
+        for (ArrayList<Integer> connectedComponent : connectedComponents) {
             sum += connectedComponent.size();
         }
         assertThat(sum).isEqualTo(graph.getNumberOfVertices());
