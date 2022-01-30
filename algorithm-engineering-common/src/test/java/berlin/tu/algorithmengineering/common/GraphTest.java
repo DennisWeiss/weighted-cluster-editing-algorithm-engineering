@@ -3,6 +3,7 @@ package berlin.tu.algorithmengineering.common;
 import berlin.tu.algorithmengineering.common.model.MergeVerticesInfo;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
@@ -316,6 +317,11 @@ class GraphTest {
         Set<Set<Integer>> connectedComponents = graph.getConnectedComponents();
 
         assertThat(connectedComponents).hasSize(2);
+        int sum = 0;
+        for (Set<Integer> connectedComponent : connectedComponents) {
+            sum += connectedComponent.size();
+        }
+        assertThat(sum).isEqualTo(graph.getNumberOfVertices());
     }
 
     @Test

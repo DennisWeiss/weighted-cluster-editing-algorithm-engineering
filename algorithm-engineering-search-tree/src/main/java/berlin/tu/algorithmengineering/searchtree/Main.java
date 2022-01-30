@@ -262,61 +262,67 @@ public class Main {
             return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
         }
 
-//        Set<Set<Integer>> connectedComponents = graph.getConnectedComponents();
-//        if (connectedComponents.size() > 1) {
-//            int[] vertexToConnectedComponentIndex = graph.getVertexToConnectedComponentIndex();
-//            boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
-//
-//            for (int i = 0; i < connectedComponents.size(); i++) {
-//                Integer[] subGraphIndices = Utils.getSubGraphIndices(vertexToConnectedComponentIndex, i);
-//                Graph subGraph = graph.getSubGraph(subGraphIndices);
-//
-//                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(subGraph, 4, false);
-//                boolean[][] parentUpperBoundEdgeExists = getEdgeExistsOfSubGraph(upperBoundSolutionEdgeExists, subGraphIndices);
-//                int parentUpperBoundCost = Utils.getCostToChange(subGraph, parentUpperBoundEdgeExists);
-//                if (parentUpperBoundCost < resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()) {
-//                    resultEdgeExistsWithSolutionSizeOfUpperBound.setResultEdgeExists(parentUpperBoundEdgeExists);
-//                    resultEdgeExistsWithSolutionSizeOfUpperBound.setSolutionSize(parentUpperBoundCost);
-//                }
-//
-//                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfSubGraph =
-//                        weightedClusterEditingOptim(
-//                                subGraph, 0, resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists(),
-//                                resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()
-//                        );
-//
-//                costToEdit += resultEdgeExistsWithSolutionSizeOfSubGraph.getSolutionSize();
-//                if (costToEdit >= upperBound) {
-//                    return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
-//                }
-//
-//                for (int j = 0; j < subGraph.getNumberOfVertices(); j++) {
-//                    for (int k = j+1; k < subGraph.getNumberOfVertices(); k++) {
-//                        if (resultEdgeExistsWithSolutionSizeOfSubGraph.getResultEdgeExists()[j][k]) {
-//                            resultEdgeExists[subGraphIndices[j]][subGraphIndices[k]] = true;
-//                            resultEdgeExists[subGraphIndices[k]][subGraphIndices[j]] = true;
-//                        }
-//                    }
-//                }
-//            }
-//
-//            return new ResultEdgeExistsWithSolutionSize(resultEdgeExists, costToEdit);
-//        }
-
         List<P3> p3List = graph.findAllP3();
-
-        if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
-            return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
-        }
-
-//        P3 p3 = graph.findP3();
 
         if (p3List.isEmpty()) {
             return new ResultEdgeExistsWithSolutionSize(Utils.copy(graph.getEdgeExists(), graph.getNumberOfVertices()), costToEdit);
         }
 
+        if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
+            return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+        }
+
+        // call recursively for all connected components
+        ArrayList<ArrayList<Integer>> connectedComponents = graph.computeConnectedComponents();
+        if (connectedComponents.size() > 1) {
+            boolean[][] resultEdgeExists = new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()];
+
+            for (ArrayList<Integer> subGraphIndices : connectedComponents) {
+                // TODO might not be needed if data reductions are applied
+                if (subGraphIndices.size() == 1) {
+                    continue;
+                } else if (subGraphIndices.size() == 2) {
+                    resultEdgeExists[subGraphIndices.get(0)][subGraphIndices.get(1)] = true;
+                    resultEdgeExists[subGraphIndices.get(1)][subGraphIndices.get(0)] = true;
+                    continue;
+                }
+                Graph subGraph = graph.getSubGraph(subGraphIndices);
+
+                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(subGraph, 4, false);
+                boolean[][] parentUpperBoundEdgeExists = getEdgeExistsOfSubGraph(upperBoundSolutionEdgeExists, subGraphIndices);
+                int parentUpperBoundCost = Utils.getCostToChange(subGraph, parentUpperBoundEdgeExists);
+                if (parentUpperBoundCost < resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()) {
+                    resultEdgeExistsWithSolutionSizeOfUpperBound.setResultEdgeExists(parentUpperBoundEdgeExists);
+                    resultEdgeExistsWithSolutionSizeOfUpperBound.setSolutionSize(parentUpperBoundCost);
+                }
+
+                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfSubGraph =
+                        weightedClusterEditingOptim(
+                                subGraph, 0, resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists(),
+                                resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()
+                        );
+
+                costToEdit += resultEdgeExistsWithSolutionSizeOfSubGraph.getSolutionSize();
+                if (costToEdit >= upperBound) {
+                    return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+                }
+
+                for (int j = 0; j < subGraph.getNumberOfVertices(); j++) {
+                    for (int k = j + 1; k < subGraph.getNumberOfVertices(); k++) {
+                        if (resultEdgeExistsWithSolutionSizeOfSubGraph.getResultEdgeExists()[j][k]) {
+                            resultEdgeExists[subGraphIndices.get(j)][subGraphIndices.get(k)] = true;
+                            resultEdgeExists[subGraphIndices.get(k)][subGraphIndices.get(j)] = true;
+                        }
+                    }
+                }
+            }
+
+            return new ResultEdgeExistsWithSolutionSize(resultEdgeExists, costToEdit);
+        }
+
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
+        //merge or delete, TODO heuristic which to do first
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
         ResultEdgeExistsWithSolutionSize solutionAfterMerge = weightedClusterEditingOptim(
                 graph, costToEdit + mergeVerticesInfo.getCost(), upperBoundSolutionEdgeExists, upperBound
@@ -352,11 +358,11 @@ public class Main {
         return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
     }
 
-    private static boolean[][] getEdgeExistsOfSubGraph(boolean[][] parentEdgeExists, Integer[] subGraphIndices) {
-        boolean[][] edgeExists = new boolean[subGraphIndices.length][subGraphIndices.length];
-        for (int i = 0; i < subGraphIndices.length; i++) {
-            for (int j = 0; j < subGraphIndices.length; j++) {
-                edgeExists[i][j] = parentEdgeExists[subGraphIndices[i]][subGraphIndices[j]];
+    private static boolean[][] getEdgeExistsOfSubGraph(boolean[][] parentEdgeExists, ArrayList<Integer> subGraphIndices) {
+        boolean[][] edgeExists = new boolean[subGraphIndices.size()][subGraphIndices.size()];
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            for (int j = 0; j < subGraphIndices.size(); j++) {
+                edgeExists[i][j] = parentEdgeExists[subGraphIndices.get(i)][subGraphIndices.get(j)];
             }
         }
         return edgeExists;

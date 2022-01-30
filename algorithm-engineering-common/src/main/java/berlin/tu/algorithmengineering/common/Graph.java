@@ -533,6 +533,32 @@ public class Graph {
         return edgeExists;
     }
 
+    public ArrayList<ArrayList<Integer>> computeConnectedComponents() {
+        boolean[] visitedVertex = new boolean[numberOfVertices];
+        ArrayList<ArrayList<Integer>> connectedComponents = new ArrayList<>();
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (!visitedVertex[i]) {
+                ArrayList<Integer> connectedComponent = new ArrayList<>();
+                connectedComponent.add(i);
+                visitedVertex[i] = true;
+                getConnectedComponentOfVertex(i, connectedComponent, visitedVertex);
+                connectedComponent.trimToSize();// will never increase again
+                connectedComponents.add(connectedComponent);
+            }
+        }
+        return connectedComponents;
+    }
+    private ArrayList<Integer> getConnectedComponentOfVertex(int vertex, ArrayList<Integer> connectedComponent, boolean[] visitedVertex) {
+        for (int i = 0; i < numberOfVertices; i++) {
+            if (vertex != i && edgeExists[vertex][i] && !visitedVertex[(i)]) {
+                connectedComponent.add(i);
+                visitedVertex[i] = true;
+                getConnectedComponentOfVertex(i, connectedComponent, visitedVertex);
+            }
+        }
+        return connectedComponent;
+    }
+
     public Set<Set<Integer>> getConnectedComponents() {
         Set<Integer> visitedVertices = new HashSet<>();
         Set<Set<Integer>> connectedComponents = new HashSet<>();
