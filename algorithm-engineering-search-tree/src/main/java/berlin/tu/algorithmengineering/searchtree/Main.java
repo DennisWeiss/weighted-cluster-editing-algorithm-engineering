@@ -11,6 +11,7 @@ import berlin.tu.algorithmengineering.common.model.ResultEdgeExistsWithSolutionS
 import berlin.tu.algorithmengineering.heuristics.Heuristics;
 import berlin.tu.algorithmengineering.heuristics.SimulatedAnnealing;
 import berlin.tu.algorithmengineering.searchtree.lp.LpLowerBound;
+import gurobi.*;
 
 import java.util.*;
 
@@ -27,17 +28,17 @@ public class Main {
 
         ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize = weightedClusterEditingOptim(graph);
 
-        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExistsWithSolutionSize.getResultEdgeExists());
+//        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), resultEdgeExistsWithSolutionSize.getResultEdgeExists());
 
-//        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()]);
+        boolean[][] edgesToEdit = Utils.getEdgesToEditFromResultEdgeExists(graph.getEdgeExists(), new boolean[graph.getNumberOfVertices()][graph.getNumberOfVertices()]);
 
         System.out.print(Utils.edgesToEditString(graph, edgesToEdit, DEBUG));
 
-        System.out.printf("#cost: %d\n", resultEdgeExistsWithSolutionSize.getSolutionSize());
-        System.out.printf("#output cost: %d\n", Utils.getCostToChange(graph, resultEdgeExistsWithSolutionSize.getResultEdgeExists()));
+//        System.out.printf("#cost: %d\n", resultEdgeExistsWithSolutionSize.getSolutionSize());
+//        System.out.printf("#output cost: %d\n", Utils.getCostToChange(graph, resultEdgeExistsWithSolutionSize.getResultEdgeExists()));
 
-        System.out.printf("#recursive steps: %d\n", recursiveSteps);
-//        System.out.printf("#recursive steps: %d\n", graph.getLowerBound2(graph.findAllP3()));
+//        System.out.printf("#recursive steps: %d\n", recursiveSteps);
+        System.out.printf("#recursive steps: %d\n", getLowerBound2BasedOnMaximumWeightIndependentSetIlp(graph, graph.findAllP3()));
     }
 
     private static boolean[][] weightedClusterEditingBranch(Graph graph, int k) {
@@ -129,6 +130,58 @@ public class Main {
         DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
 
         return resultEdgeExists;
+    }
+
+    public static int getLowerBound2BasedOnMaximumWeightIndependentSetIlp(Graph graph, List<P3> p3List) {
+        int[] vertexWeights = new int[p3List.size()];
+        boolean[][] edges = new boolean[vertexWeights.length][vertexWeights.length];
+
+        for (int i = 0; i < vertexWeights.length; i++) {
+            vertexWeights[i] = graph.getSmallestAbsoluteWeight(p3List.get(i));
+        }
+
+        for (int i = 0; i < vertexWeights.length; i++) {
+            for (int j = i+1; j < vertexWeights.length; j++) {
+                boolean edgeExists = graph.getNumberOfSharedVertices(p3List.get(i), p3List.get(j)) > 1;
+                edges[i][j] = edgeExists;
+                edges[j][i] = edgeExists;
+            }
+        }
+
+        try {
+            GRBEnv env = new GRBEnv(true);
+            env.set(GRB.IntParam.LogToConsole, 0);
+            env.start();
+
+            GRBModel model = new GRBModel(env);
+
+            GRBVar[] x = new GRBVar[vertexWeights.length];
+
+            for (int i = 0; i < vertexWeights.length; i++) {
+                x[i] = model.addVar(0, 1, vertexWeights[i], GRB.INTEGER, String.valueOf(i));
+            }
+
+            model.set(GRB.IntAttr.ModelSense, GRB.MAXIMIZE);
+
+            for (int i = 0; i < vertexWeights.length; i++) {
+                for (int j = 0; j < vertexWeights.length; j++) {
+                    if (i != j && edges[i][j]) {
+                        GRBLinExpr constraint = new GRBLinExpr();
+                        constraint.addTerm(1., x[i]);
+                        constraint.addTerm(1., x[j]);
+                        model.addConstr(1., GRB.GREATER_EQUAL, constraint, String.format("%d %d", i, j));
+                    }
+                }
+            }
+
+            model.optimize();
+
+            return (int) Math.round(model.get(GRB.DoubleAttr.ObjVal));
+        } catch (GRBException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 
     private static P3 getBiggestWeightP3(Graph graph, List<P3> p3List) {
