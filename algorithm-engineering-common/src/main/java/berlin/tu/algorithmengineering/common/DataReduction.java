@@ -256,7 +256,7 @@ public class DataReduction {
     }
 
     public static int getMinCutCost(Graph graph, int[] subGraphIndices) {
-        return NagamochiIbarakiAlgorithm.getGlobalMinCutCost(graph.getSubGraph(subGraphIndices));
+        return NagamochiIbarakiAlgorithm.getGlobalMinCutCost(graph.getSubGraphOfConnectedComponent(subGraphIndices));
     }
 
     private static int getCutCost(Graph graph, Set<Integer> subGraphIndices, Set<Integer> cutComponentIndices) {

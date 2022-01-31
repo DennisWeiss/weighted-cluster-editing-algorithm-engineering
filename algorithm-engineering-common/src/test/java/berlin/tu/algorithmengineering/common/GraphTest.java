@@ -22,6 +22,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(3, 4);
 
@@ -55,6 +56,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3);
 
@@ -88,6 +90,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(4, 3);
         graph.revertMergeVertices(mergeVerticesInfo);
@@ -113,6 +116,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         MergeVerticesInfo mergeVerticesInfo1 = graph.mergeVertices(4, 3);
         MergeVerticesInfo mergeVerticesInfo2 = graph.mergeVertices(1, 2);
@@ -146,6 +150,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(deepCopy(edges));
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         MergeVerticesInfo mergeVerticesInfo1 = graph.mergeVertices(4, 3);
         MergeVerticesInfo mergeVerticesInfo2 = graph.mergeVertices(1, 3);
@@ -174,6 +179,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
         graph.computeNeighborhoodWeights();
+        graph.computeConnectedComponents();
 
         graph.mergeVertices(3, 4);
 
@@ -197,6 +203,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
         graph.computeNeighborhoodWeights();
+        graph.computeConnectedComponents();
 
         graph.mergeVertices(1, 3);
 
@@ -220,6 +227,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
         graph.computeNeighborhoodWeights();
+        graph.computeConnectedComponents();
 
         graph.revertMergeVertices(graph.mergeVertices(1, 3));
 
@@ -243,6 +251,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
         graph.computeAbsoluteNeighborhoodWeights();
+        graph.computeConnectedComponents();
 
         graph.mergeVertices(3, 4);
 
@@ -266,6 +275,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
         graph.computeAbsoluteNeighborhoodWeights();
+        graph.computeConnectedComponents();
 
         graph.mergeVertices(1, 3);
 
@@ -289,6 +299,7 @@ class GraphTest {
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
         graph.computeAbsoluteNeighborhoodWeights();
+        graph.computeConnectedComponents();
 
         graph.revertMergeVertices(graph.mergeVertices(1, 3));
 
@@ -313,6 +324,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         ArrayList<ArrayList<Integer>> connectedComponents = graph.getConnectedComponents();
 
@@ -338,6 +350,7 @@ class GraphTest {
         };
         graph.setEdgeWeights(edges.clone());
         graph.computeEdgeExists();
+        graph.computeConnectedComponents();
 
         assertThat(graph.getTransitiveClosureCost()).isEqualTo(6);
     }

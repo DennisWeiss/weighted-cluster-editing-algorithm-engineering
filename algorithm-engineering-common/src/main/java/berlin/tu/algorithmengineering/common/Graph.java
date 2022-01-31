@@ -14,6 +14,8 @@ public class Graph {
     private boolean[][] edgeExists;
     private int[] neighborhoodWeights;
     private int[] absoluteNeighborhoodWeights;
+    private ArrayList<ArrayList<Integer>> connectedComponents;
+    private int[] vertexToConnectedComponentIndex;
 
     public Graph(int numberOfVertices) {
         this.numberOfVertices = numberOfVertices;
@@ -84,6 +86,46 @@ public class Graph {
         edgeExists[j][i] = !edgeExists[j][i];
         neighborhoodWeights[i] += edgeWeights[i][j];
         neighborhoodWeights[j] += edgeWeights[i][j];
+
+        if (edgeExists[i][j]) {
+            int connectedComponentIndexOfI = vertexToConnectedComponentIndex[i];
+            int connectedComponentIndexOfJ = vertexToConnectedComponentIndex[j];
+            if (connectedComponentIndexOfI != connectedComponentIndexOfJ) {
+                for (Integer w : connectedComponents.get(connectedComponentIndexOfJ)) {
+                    vertexToConnectedComponentIndex[w] = connectedComponentIndexOfI;
+                    connectedComponents.get(connectedComponentIndexOfI).add(w);
+                }
+                connectedComponents.remove(connectedComponentIndexOfJ);
+            }
+        }else if (!edgeExists[i][j]) {
+            ArrayList<Integer> newConnectedComponent = new ArrayList<>();
+            newConnectedComponent.add(j);
+            boolean[] visitedVertex = new boolean[numberOfVertices];
+            visitedVertex[j] = true;
+            if (! pathExists(j,i,newConnectedComponent,visitedVertex)) {
+                int newIndex = connectedComponents.size();
+                connectedComponents.add(newIndex,newConnectedComponent);
+                connectedComponents.get(vertexToConnectedComponentIndex[i]).removeAll(newConnectedComponent);
+                for (Integer w : newConnectedComponent) {
+                    vertexToConnectedComponentIndex[w] = newIndex;
+                }
+            }
+        }
+    }
+
+    private boolean pathExists(int vertex, int otherVertex, ArrayList<Integer> connectedComponent, boolean[] visitedVertex) {
+
+            for (int i = 0; i < numberOfVertices; i++) {
+                if (vertex != i && edgeExists[vertex][i] && !visitedVertex[i]) {
+                    if (i == otherVertex) return true;
+                    connectedComponent.add(i);
+                    visitedVertex[i] = true;
+                    if (pathExists(i, otherVertex, connectedComponent, visitedVertex)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
     }
 
     public MergeVerticesInfo mergeVertices(int a, int b) {
@@ -171,6 +213,14 @@ public class Graph {
             }
         }
 
+        // fix connected components
+        if (vertexToConnectedComponentIndex[b] != vertexToConnectedComponentIndex[numberOfVertices-1]) {
+            connectedComponents.get(vertexToConnectedComponentIndex[a]).remove(Integer.valueOf(b));
+            connectedComponents.get(vertexToConnectedComponentIndex[numberOfVertices-1]).add(b);
+            vertexToConnectedComponentIndex[b] = vertexToConnectedComponentIndex[numberOfVertices-1];
+        }
+        connectedComponents.get(vertexToConnectedComponentIndex[numberOfVertices-1]).remove(Integer.valueOf(numberOfVertices-1));
+
         numberOfVertices--;
 
         return mergeVerticesInfo;
@@ -249,6 +299,17 @@ public class Graph {
             edgeWeights[i][mergeVerticesInfo.getSecondVertex()] = mergeVerticesInfo.getEdgeWeightsOfSecondVertex()[i];
             edgeExists[i][mergeVerticesInfo.getSecondVertex()] = mergeVerticesInfo.getEdgeExistsOfSecondVertex()[i];
         }
+
+        int a = mergeVerticesInfo.getFirstVertex();
+        int b = mergeVerticesInfo.getSecondVertex();
+
+        // fix connected components
+        if (vertexToConnectedComponentIndex[a] != vertexToConnectedComponentIndex[numberOfVertices-1]) {
+            connectedComponents.get(vertexToConnectedComponentIndex[a]).add(b);
+            connectedComponents.get(vertexToConnectedComponentIndex[numberOfVertices-1]).remove(Integer.valueOf(b));
+            vertexToConnectedComponentIndex[b] = vertexToConnectedComponentIndex[a];
+        }
+        connectedComponents.get(vertexToConnectedComponentIndex[numberOfVertices-1]).add(numberOfVertices-1);
     }
 
     public void revertFromMergeVerticesInfoStack(Stack<MergeVerticesInfo> mergeVerticesInfoStack) {
@@ -259,7 +320,7 @@ public class Graph {
     }
 
 
-    public Graph getSubGraph(int[] subGraphIndices) {
+    public Graph getSubGraphOfConnectedComponent(int[] subGraphIndices) {
         Graph graph = new Graph(subGraphIndices.length);
         for (int i = 0; i < subGraphIndices.length; i++) {
             for (int j = 0; j < subGraphIndices.length; j++) {
@@ -270,10 +331,18 @@ public class Graph {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
+        ArrayList<Integer> connectedComponent = new ArrayList<>(subGraphIndices.length);
+        graph.connectedComponents = new ArrayList<>();
+        graph.connectedComponents.add(connectedComponent);
+        graph.vertexToConnectedComponentIndex = new int[subGraphIndices.length];
+        for (int i = 0; i < subGraphIndices.length; i++) {
+            connectedComponent.add(i);
+            graph.vertexToConnectedComponentIndex[i] = 0;
+        }
         return graph;
     }
 
-    public Graph getSubGraph(Integer[] subGraphIndices) {
+    public Graph getSubGraphOfConnectedComponent(Integer[] subGraphIndices) {
         Graph graph = new Graph(subGraphIndices.length);
         for (int i = 0; i < subGraphIndices.length; i++) {
             for (int j = 0; j < subGraphIndices.length; j++) {
@@ -284,10 +353,18 @@ public class Graph {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
+        ArrayList<Integer> connectedComponent = new ArrayList<>(subGraphIndices.length);
+        graph.connectedComponents = new ArrayList<>();
+        graph.connectedComponents.add(connectedComponent);
+        graph.vertexToConnectedComponentIndex = new int[subGraphIndices.length];
+        for (int i = 0; i < subGraphIndices.length; i++) {
+            connectedComponent.add(i);
+            graph.vertexToConnectedComponentIndex[i] = 0;
+        }
         return graph;
     }
 
-    public Graph getSubGraph(List<Integer> subGraphIndices) {
+    public Graph getSubGraphOfConnectedComponent(ArrayList<Integer> subGraphIndices) {
         Graph graph = new Graph(subGraphIndices.size());
         for (int i = 0; i < subGraphIndices.size(); i++) {
             for (int j = 0; j < subGraphIndices.size(); j++) {
@@ -298,6 +375,14 @@ public class Graph {
         graph.computeNeighborhoodWeights();
         graph.computeAbsoluteNeighborhoodWeights();
 
+        ArrayList<Integer> connectedComponent = new ArrayList<>(subGraphIndices.size());
+        graph.connectedComponents = new ArrayList<>();
+        graph.connectedComponents.add(connectedComponent);
+        graph.vertexToConnectedComponentIndex = new int[subGraphIndices.size()];
+        for (int i = 0; i < subGraphIndices.size(); i++) {
+            connectedComponent.add(i);
+            graph.vertexToConnectedComponentIndex[i] = 0;
+        }
         return graph;
     }
 
@@ -535,10 +620,14 @@ public class Graph {
 
 
     public ArrayList<ArrayList<Integer>> getConnectedComponents() {
-        return computeConnectedComponents(edgeExists, numberOfVertices);
+        return connectedComponents;
+    }
+    public void computeConnectedComponents() {
+        connectedComponents = getConnectedComponents(edgeExists, numberOfVertices);
+        vertexToConnectedComponentIndex = getVertexToConnectedComponentIndex(connectedComponents, numberOfVertices);
     }
 
-    public static ArrayList<ArrayList<Integer>> computeConnectedComponents(boolean[][] edgeExists, int numberOfVertices) {
+    public static ArrayList<ArrayList<Integer>> getConnectedComponents(boolean[][] edgeExists, int numberOfVertices) {
         boolean[] visitedVertex = new boolean[numberOfVertices];
         ArrayList<ArrayList<Integer>> connectedComponents = new ArrayList<>();
         for (int i = 0; i < numberOfVertices; i++) {
@@ -557,7 +646,7 @@ public class Graph {
             int vertex, ArrayList<Integer> connectedComponent, boolean[] visitedVertex,
             boolean[][] edgeExists, int numberOfVertices) {
         for (int i = 0; i < numberOfVertices; i++) {
-            if (vertex != i && edgeExists[vertex][i] && !visitedVertex[(i)]) {
+            if (vertex != i && edgeExists[vertex][i] && !visitedVertex[i]) {
                 connectedComponent.add(i);
                 visitedVertex[i] = true;
                 getConnectedComponentOfVertex(i, connectedComponent, visitedVertex, edgeExists, numberOfVertices);
@@ -570,7 +659,6 @@ public class Graph {
         if (numberOfVertices < 3) {
             return 0;
         }
-        int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndex();
         int cost = 0;
         for (int i = 0; i < numberOfVertices; i++) {
             for (int j = i+1; j < numberOfVertices; j++) {
@@ -586,7 +674,6 @@ public class Graph {
         if (numberOfVertices < 3) {
             return;
         }
-        int[] vertexToConnectedComponentIndex = getVertexToConnectedComponentIndex();
         for (int i = 0; i < numberOfVertices; i++) {
             for (int j = i + 1; j < numberOfVertices; j++) {
                 if (!edgeExists[i][j] && vertexToConnectedComponentIndex[i] == vertexToConnectedComponentIndex[j]) {
@@ -597,7 +684,7 @@ public class Graph {
     }
 
     public int[] getVertexToConnectedComponentIndex() {
-        return getVertexToConnectedComponentIndex(getConnectedComponents(), numberOfVertices);
+        return vertexToConnectedComponentIndex;
     }
 
     public static int[] getVertexToConnectedComponentIndex(ArrayList<ArrayList<Integer>> connectedComponents, int numberOfVertices) {

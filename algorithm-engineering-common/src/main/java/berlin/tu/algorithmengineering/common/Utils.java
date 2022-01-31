@@ -165,6 +165,7 @@ public class Utils {
             graph.computeEdgeExists();
             graph.computeNeighborhoodWeights();
             graph.computeAbsoluteNeighborhoodWeights();
+            graph.computeConnectedComponents();
         } catch (IOException e) {
             e.printStackTrace();
         }

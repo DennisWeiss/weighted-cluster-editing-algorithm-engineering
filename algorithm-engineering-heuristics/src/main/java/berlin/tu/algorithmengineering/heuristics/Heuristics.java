@@ -16,7 +16,6 @@ import com.google.ortools.linearsolver.MPVariable;
 import org.ejml.data.Eigenpair;
 import org.ejml.simple.SimpleMatrix;
 
-import java.io.File;
 import java.util.*;
 
 
@@ -106,7 +105,7 @@ public class Heuristics {
         }
 
         ArrayList<Integer> subGraphIndices1 = connectedComponents.get(0);
-        Graph subGraph = graph.getSubGraph(subGraphIndices1);
+        Graph subGraph = graph.getSubGraphOfConnectedComponent(subGraphIndices1);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph1 = getGreedyHeuristic1(subGraph);
         if (edgeDeletionsWithCost.getCost() + edgeDeletionsWithCostOfSubGraph1.getCost() >= transitiveClosureCost) {
@@ -114,7 +113,7 @@ public class Heuristics {
         }
 
         ArrayList<Integer> subGraphIndices2 = connectedComponents.get(1);
-        subGraph = graph.getSubGraph(subGraphIndices2);
+        subGraph = graph.getSubGraphOfConnectedComponent(subGraphIndices2);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph2 = getGreedyHeuristic1(subGraph);
         if (edgeDeletionsWithCost.getCost() + edgeDeletionsWithCostOfSubGraph1.getCost()
@@ -215,7 +214,7 @@ public class Heuristics {
         }
 
         ArrayList<Integer> subGraphIndices1 = connectedComponents.get(0);
-        Graph subGraph = graph.getSubGraph(subGraphIndices1);
+        Graph subGraph = graph.getSubGraphOfConnectedComponent(subGraphIndices1);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph1 = getGreedyHeuristicLp(subGraph);
         if (edgeDeletionsWithCost.getCost() + edgeDeletionsWithCostOfSubGraph1.getCost() >= transitiveClosureCost) {
@@ -223,7 +222,7 @@ public class Heuristics {
         }
 
         ArrayList<Integer> subGraphIndices2 = connectedComponents.get(1);
-        subGraph = graph.getSubGraph(subGraphIndices2);
+        subGraph = graph.getSubGraphOfConnectedComponent(subGraphIndices2);
 
         EdgeDeletionsWithCost edgeDeletionsWithCostOfSubGraph2 = getGreedyHeuristicLp(subGraph);
         if (edgeDeletionsWithCost.getCost() + edgeDeletionsWithCostOfSubGraph1.getCost()
@@ -441,7 +440,7 @@ public class Heuristics {
     }
 
     private static int[] getVertexToConnectedComponentIndexOfResultEdgeExists(boolean[][] resultEdgeExists) {
-        ArrayList<ArrayList<Integer>> connectedComponents = Graph.computeConnectedComponents(resultEdgeExists,resultEdgeExists.length);
+        ArrayList<ArrayList<Integer>> connectedComponents = Graph.getConnectedComponents(resultEdgeExists,resultEdgeExists.length);
         return Graph.getVertexToConnectedComponentIndex(connectedComponents, resultEdgeExists.length);
     }
 

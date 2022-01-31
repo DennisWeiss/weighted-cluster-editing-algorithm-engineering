@@ -286,7 +286,7 @@ public class Main {
                     resultEdgeExists[subGraphIndices.get(1)][subGraphIndices.get(0)] = true;
                     continue;
                 }
-                Graph subGraph = graph.getSubGraph(subGraphIndices);
+                Graph subGraph = graph.getSubGraphOfConnectedComponent(subGraphIndices);
 
                 ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(subGraph, 4, false);
                 boolean[][] parentUpperBoundEdgeExists = getEdgeExistsOfSubGraph(upperBoundSolutionEdgeExists, subGraphIndices);
