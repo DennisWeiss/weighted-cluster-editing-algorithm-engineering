@@ -288,18 +288,22 @@ public class Main {
                 }
                 Graph subGraph = graph.getSubGraphOfConnectedComponent(subGraphIndices);
 
-                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(subGraph, 4, false);
                 boolean[][] parentUpperBoundEdgeExists = getEdgeExistsOfSubGraph(upperBoundSolutionEdgeExists, subGraphIndices);
-                int parentUpperBoundCost = Utils.getCostToChange(subGraph, parentUpperBoundEdgeExists);
-                if (parentUpperBoundCost < resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()) {
-                    resultEdgeExistsWithSolutionSizeOfUpperBound.setResultEdgeExists(parentUpperBoundEdgeExists);
-                    resultEdgeExistsWithSolutionSizeOfUpperBound.setSolutionSize(parentUpperBoundCost);
-                }
-
+                //to test: quick:
+                int parentUpperBoundCost = upperBound - costToEdit; //reduce because the costToEdit would be added for each component otherwise
+                //to test: middle slow/quick:
+//                int parentUpperBoundCost = Math.min( upperBound - costToEdit, Utils.getCostToChange(subGraph, parentUpperBoundEdgeExists) );
+                //to test: slow:
+                //TODO use parameter or other heuristic: don't recalculate upper bound ALWAYS again
+//                ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(subGraph, 4, false);
+//                if (resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize() < parentUpperBoundCost) {
+//                    parentUpperBoundEdgeExists = resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists();
+//                    parentUpperBoundCost = resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize();
+//                }
+                //end tests
                 ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfSubGraph =
                         weightedClusterEditingOptim(
-                                subGraph, 0, resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists(),
-                                resultEdgeExistsWithSolutionSizeOfUpperBound.getSolutionSize()
+                                subGraph, 0, parentUpperBoundEdgeExists, parentUpperBoundCost
                         );
 
                 costToEdit += resultEdgeExistsWithSolutionSizeOfSubGraph.getSolutionSize();
