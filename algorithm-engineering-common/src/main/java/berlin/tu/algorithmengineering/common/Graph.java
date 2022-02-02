@@ -223,6 +223,28 @@ public class Graph {
 
         numberOfVertices--;
 
+        //split connected components if needed, a stays in its connected component
+        int firstNewIndex = connectedComponents.size();
+        for (Integer j : connectedComponents.get(vertexToConnectedComponentIndex[a])) {
+            if (j == a) continue;
+            //check if j was already part of a splitted component
+            if (vertexToConnectedComponentIndex[j] != vertexToConnectedComponentIndex[a]) continue;
+
+            ArrayList<Integer> newConnectedComponent = new ArrayList<>();
+            newConnectedComponent.add(j);
+            boolean[] visitedVertex = new boolean[numberOfVertices];
+            visitedVertex[j] = true;
+            if (! pathExists(j,a,newConnectedComponent,visitedVertex)) {
+                int newIndex = connectedComponents.size();
+                connectedComponents.add(newIndex,newConnectedComponent);
+                for (Integer w : newConnectedComponent) {
+                    vertexToConnectedComponentIndex[w] = newIndex;
+                }
+            }
+        }
+        for (int i = firstNewIndex; i < connectedComponents.size(); i++) {
+            connectedComponents.get(vertexToConnectedComponentIndex[a]).removeAll(connectedComponents.get(i));
+        }
         return mergeVerticesInfo;
     }
 
@@ -304,12 +326,42 @@ public class Graph {
         int b = mergeVerticesInfo.getSecondVertex();
 
         // fix connected components
-        if (vertexToConnectedComponentIndex[a] != vertexToConnectedComponentIndex[numberOfVertices-1]) {
+        connectedComponents.get(vertexToConnectedComponentIndex[b]).add(numberOfVertices-1);
+        vertexToConnectedComponentIndex[numberOfVertices-1] = vertexToConnectedComponentIndex[b];
+        if (vertexToConnectedComponentIndex[a] != vertexToConnectedComponentIndex[b]) {
             connectedComponents.get(vertexToConnectedComponentIndex[a]).add(b);
-            connectedComponents.get(vertexToConnectedComponentIndex[numberOfVertices-1]).remove(Integer.valueOf(b));
+            connectedComponents.get(vertexToConnectedComponentIndex[b]).remove(Integer.valueOf(b));
             vertexToConnectedComponentIndex[b] = vertexToConnectedComponentIndex[a];
         }
-        connectedComponents.get(vertexToConnectedComponentIndex[numberOfVertices-1]).add(numberOfVertices-1);
+        //merge connected components if needed
+        if (connectedComponents.size() > 1) {
+            for (int j = 0; j < numberOfVertices; j++) {
+                if (j == a || j == b) continue;
+                if (edgeExists[a][j] || edgeExists[b][j]) {
+                    int connectedComponentIndexOfA = vertexToConnectedComponentIndex[a];
+                    int connectedComponentIndexOfJ = vertexToConnectedComponentIndex[j];
+                    if (connectedComponentIndexOfA != connectedComponentIndexOfJ) {
+                        for (Integer w : connectedComponents.get(connectedComponentIndexOfJ)) {
+                            vertexToConnectedComponentIndex[w] = connectedComponentIndexOfA;
+                            connectedComponents.get(connectedComponentIndexOfA).add(w);
+                        }
+                    }
+                }
+            }
+            //cleanup orphaned connected components and fix vertexToConnectedComponentIndex for the ones with bigger index
+            int deleted = 0;
+            for (int i = 0; i < connectedComponents.size() + deleted; i++) {
+                int v = connectedComponents.get(i - deleted).get(0);
+                if (vertexToConnectedComponentIndex[v] != i - deleted) {
+                    connectedComponents.remove(i-deleted);
+                    deleted++;
+                } else if (deleted > 0) {
+                    for (Integer w : connectedComponents.get(i - deleted)) {
+                        vertexToConnectedComponentIndex[w] = i - deleted;
+                    }
+                }
+            }
+        }
     }
 
     public void revertFromMergeVerticesInfoStack(Stack<MergeVerticesInfo> mergeVerticesInfoStack) {
