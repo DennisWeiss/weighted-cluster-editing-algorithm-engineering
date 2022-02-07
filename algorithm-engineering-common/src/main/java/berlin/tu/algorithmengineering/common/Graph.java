@@ -9,6 +9,8 @@ import java.util.*;
 
 public class Graph {
 
+    public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+
     private int numberOfVertices;
     private int[][] edgeWeights;
     private boolean[][] edgeExists;
@@ -84,6 +86,25 @@ public class Graph {
         edgeExists[j][i] = !edgeExists[j][i];
         neighborhoodWeights[i] += edgeWeights[i][j];
         neighborhoodWeights[j] += edgeWeights[i][j];
+    }
+
+    public int flipEdgeAndSetForbidden(int i, int j) {
+        flipEdge(i, j);
+        int costToFlip = edgeWeights[i][j];
+        edgeWeights[i][j] = FORBIDDEN_VALUE;
+        edgeWeights[j][i] = FORBIDDEN_VALUE;
+        absoluteNeighborhoodWeights[i] += -FORBIDDEN_VALUE + costToFlip;
+        absoluteNeighborhoodWeights[j] += -FORBIDDEN_VALUE + costToFlip;
+
+        return costToFlip;
+    }
+
+    public void flipBackForbiddenEdge(int i, int j, int cost) {
+        edgeWeights[i][j] = cost;
+        edgeWeights[j][i] = cost;
+        absoluteNeighborhoodWeights[i] -= -FORBIDDEN_VALUE + cost;
+        absoluteNeighborhoodWeights[j] -= -FORBIDDEN_VALUE + cost;
+        flipEdge(i, j);
     }
 
     public MergeVerticesInfo mergeVertices(int a, int b) {

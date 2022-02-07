@@ -114,18 +114,9 @@ public class Main {
             return resultEdgeExists;
         }
 
-        graph.flipEdge(p3.getU(), p3.getV());
-        int cost = graph.getEdgeWeights()[p3.getU()][p3.getV()];
-        graph.getEdgeWeights()[p3.getU()][p3.getV()] = FORBIDDEN_VALUE;
-        graph.getEdgeWeights()[p3.getV()][p3.getU()] = FORBIDDEN_VALUE;
-        graph.getAbsoluteNeighborhoodWeights()[p3.getU()] += -FORBIDDEN_VALUE + cost;
-        graph.getAbsoluteNeighborhoodWeights()[p3.getV()] += -FORBIDDEN_VALUE + cost;
+        int cost = graph.flipEdgeAndSetForbidden(p3.getU(), p3.getV());
         resultEdgeExists = weightedClusterEditingBranch(graph, k + cost);
-        graph.getEdgeWeights()[p3.getU()][p3.getV()] = cost;
-        graph.getEdgeWeights()[p3.getV()][p3.getU()] = cost;
-        graph.getAbsoluteNeighborhoodWeights()[p3.getU()] -= -FORBIDDEN_VALUE + cost;
-        graph.getAbsoluteNeighborhoodWeights()[p3.getV()] -= -FORBIDDEN_VALUE + cost;
-        graph.flipEdge(p3.getU(), p3.getV());
+        graph.flipBackForbiddenEdge(p3.getU(), p3.getV(), cost);
 
         DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
 
@@ -371,6 +362,9 @@ public class Main {
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
+
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeUpperBoundAfterMerge = getUpperBound(graph, 4, false);
+
         ResultEdgeExistsWithSolutionSize solutionAfterMerge = weightedClusterEditingOptim(
                 graph, costToEdit + mergeVerticesInfo.getCost(), upperBoundSolutionEdgeExists, upperBound
         );
