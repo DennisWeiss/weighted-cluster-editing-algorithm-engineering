@@ -6,13 +6,13 @@ import com.google.ortools.linearsolver.MPConstraint;
 import com.google.ortools.linearsolver.MPObjective;
 import com.google.ortools.linearsolver.MPSolver;
 import com.google.ortools.linearsolver.MPVariable;
-import gurobi.*;
+//import gurobi.*;
 
 import java.util.Set;
 
 
 public class LpLowerBound {
-
+/*
     public static double getLowerBound(Graph graph) {
         return getLowerBound(graph, false);
     }
@@ -72,6 +72,7 @@ public class LpLowerBound {
         }
         return Double.MAX_VALUE;
     }
+    */
 
     public static double getLowerBoundSubGraphs(Graph graph) {
         final int SUB_GRAPH_SIZE = 50;
@@ -111,7 +112,7 @@ public class LpLowerBound {
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = i+1; j < graph.getNumberOfVertices(); j++) {
-                x[i][j] = mpSolver.makeNumVar(0.0, 1.0, String.format("%d %d", graph.getNumberOfVertices(), graph.getNumberOfVertices()));
+                x[i][j] = mpSolver.makeNumVar(0, 1, String.format("%d %d", graph.getNumberOfVertices(), graph.getNumberOfVertices()));
             }
         }
 
@@ -119,10 +120,10 @@ public class LpLowerBound {
             for (int j = 0; j < graph.getNumberOfVertices(); j++) {
                 for (int k = 0; k < graph.getNumberOfVertices(); k++) {
                     if (i != j && j != k && i != k) {
-                        MPConstraint constraint = mpSolver.makeConstraint(Double.NEGATIVE_INFINITY, 1.0);
-                        constraint.setCoefficient(x[Math.min(i, j)][Math.max(i, j)], 1.0);
-                        constraint.setCoefficient(x[Math.min(j, k)][Math.max(j, k)], 1.0);
-                        constraint.setCoefficient(x[Math.min(i, k)][Math.max(i, k)], -1.0);
+                        MPConstraint constraint = mpSolver.makeConstraint(Double.NEGATIVE_INFINITY, 1);
+                        constraint.setCoefficient(x[Math.min(i, j)][Math.max(i, j)], 1);
+                        constraint.setCoefficient(x[Math.min(j, k)][Math.max(j, k)], 1);
+                        constraint.setCoefficient(x[Math.min(i, k)][Math.max(i, k)], -1);
                     }
                 }
             }
@@ -133,17 +134,21 @@ public class LpLowerBound {
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
             for (int j = i + 1; j < graph.getNumberOfVertices(); j++) {
-                objective.setCoefficient(x[i][j], -graph.getEdgeWeights()[i][j]);
-                constant += Math.max(graph.getEdgeWeights()[i][j], 0.0);
+                if (graph.getEdgeWeights()[i][j] != 0) {
+                    objective.setCoefficient(x[i][j], -graph.getEdgeWeights()[i][j]);
+                    if (graph.getEdgeExists()[i][j]) {
+                        constant += graph.getEdgeWeights()[i][j];
+                    }
+                }
             }
         }
 
-        objective.setOffset(constant);
+        //objective.setOffset(constant);
 
         objective.setMinimization();
 
         MPSolver.ResultStatus resultStatus = mpSolver.solve();
-
-        return objective.value();
+//        System.out.printf("#walltime %d: %s\n",graph.getNumberOfVertices(),mpSolver.wallTime());
+        return objective.value() + constant;
     }
 }

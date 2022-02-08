@@ -349,15 +349,23 @@ public class Main {
 
         List<P3> p3List = graph.findAllP3();
 
-        if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
-            return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
-        }
-
-//        P3 p3 = graph.findP3();
-
         if (p3List.isEmpty()) {
             return new ResultEdgeExistsWithSolutionSize(Utils.copy(graph.getEdgeExists(), graph.getNumberOfVertices()), costToEdit);
         }
+
+        //LP lower bound
+//        if (recursiveSteps % 2 == 1){ //TODO use level or probablity instead?
+//        double lowerBound = LpLowerBound.getLowerBoundOrTools(graph);
+//        if (costToEdit + lowerBound >= upperBound) {
+//            return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+//        }
+//        }
+        //Lower Bound 2
+//        if (recursiveSteps % 2 == 0){ //TODO use level or probablity instead?
+            if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
+                return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+            }
+//        }
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
