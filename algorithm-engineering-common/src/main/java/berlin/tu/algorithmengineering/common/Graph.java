@@ -9,6 +9,8 @@ import java.util.*;
 
 public class Graph {
 
+    public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
+
     private int numberOfVertices;
     private int[][] edgeWeights;
     private boolean[][] edgeExists;
@@ -126,6 +128,25 @@ public class Graph {
                 }
             }
             return false;
+    }
+
+    public int flipEdgeAndSetForbidden(int i, int j) {
+        flipEdge(i, j);
+        int costToFlip = edgeWeights[i][j];
+        edgeWeights[i][j] = FORBIDDEN_VALUE;
+        edgeWeights[j][i] = FORBIDDEN_VALUE;
+        absoluteNeighborhoodWeights[i] += -FORBIDDEN_VALUE + costToFlip;
+        absoluteNeighborhoodWeights[j] += -FORBIDDEN_VALUE + costToFlip;
+
+        return costToFlip;
+    }
+
+    public void flipBackForbiddenEdge(int i, int j, int cost) {
+        edgeWeights[i][j] = cost;
+        edgeWeights[j][i] = cost;
+        absoluteNeighborhoodWeights[i] -= -FORBIDDEN_VALUE + cost;
+        absoluteNeighborhoodWeights[j] -= -FORBIDDEN_VALUE + cost;
+        flipEdge(i, j);
     }
 
     public MergeVerticesInfo mergeVertices(int a, int b) {
@@ -539,6 +560,175 @@ public class Graph {
         return lowerBound;
     }
 
+    public int getLowerBound2BasedOnMaximumWeightIndependentSetMoreEfficient(List<P3> p3List) {
+        int[] vertexWeights = new int[p3List.size()];
+        boolean[][] edges = new boolean[vertexWeights.length][vertexWeights.length];
+
+        for (int i = 0; i < vertexWeights.length; i++) {
+            vertexWeights[i] = getSmallestAbsoluteWeight(p3List.get(i));
+        }
+
+        for (int i = 0; i < vertexWeights.length; i++) {
+            for (int j = i+1; j < vertexWeights.length; j++) {
+                boolean edgeExists = getNumberOfSharedVertices(p3List.get(i), p3List.get(j)) > 1;
+                edges[i][j] = edgeExists;
+                edges[j][i] = edgeExists;
+            }
+        }
+
+        boolean[] independentSet = new boolean[vertexWeights.length];
+        boolean[] freeVertices = new boolean[vertexWeights.length];
+        int numberOfFreeVertices = vertexWeights.length;
+        Arrays.fill(freeVertices, true);
+
+        createInitialSelection(edges, independentSet, freeVertices);
+
+        return performSimulatedAnnealingOnMaximumWeightIndependent(vertexWeights, edges, independentSet, freeVertices);
+    }
+
+    private static int performSimulatedAnnealingOnMaximumWeightIndependent(
+            int[] vertexWeights, boolean[][] edges, boolean[] independentSet, boolean[] freeVertices
+    ) {
+        final double T_START = 2;
+        double t = T_START;
+        final int ITERATIONS = 10_000;
+
+        int currentSolution = getIndependentSetWeight(vertexWeights, independentSet);
+        int highestSolution = currentSolution;
+
+        for (int i = 0; i < ITERATIONS; i++) {
+            boolean[] perturbedIndependentSet = Arrays.copyOf(independentSet, independentSet.length);
+            boolean[] perturbedFreeVertices = Arrays.copyOf(freeVertices, freeVertices.length);
+            int deltaSolution = perturbIndependentSet(vertexWeights, edges, perturbedIndependentSet, perturbedFreeVertices);
+            if (deltaSolution >= 0 || Utils.RANDOM.nextDouble() < Math.exp(deltaSolution / t)) {
+                currentSolution += deltaSolution;
+                independentSet = perturbedIndependentSet;
+                freeVertices = perturbedFreeVertices;
+                if (currentSolution > highestSolution) {
+                    highestSolution = currentSolution;
+                }
+            }
+            t -= T_START / ITERATIONS;
+        }
+
+        return highestSolution;
+    }
+
+    private static int perturbIndependentSet(int[] vertexWeights, boolean[][] edges, boolean[] independentSet, boolean[] freeVertices) {
+        int deltaSolution = 0;
+
+        int sizeOfIndependentSet = getNumberOfTrueValues(independentSet);
+        int index = Utils.randInt(0, sizeOfIndependentSet);
+
+        for (int i = 0; i < independentSet.length; i++) {
+            if (independentSet[i]) {
+                if (index == 0) {
+                    independentSet[i] = false;
+                    freeVertices[i] = true;
+                    deltaSolution -= vertexWeights[i];
+                    for (int j = 0; j < edges.length; j++) {
+                        if (i != j && edges[i][j] && isFreeVertex(j, edges, independentSet)) {
+                            freeVertices[j] = true;
+                        }
+                    }
+                    break;
+                } else {
+                    index--;
+                }
+            }
+        }
+
+        int numberOfFreeVertices = getNumberOfTrueValues(freeVertices);
+
+        while (numberOfFreeVertices > 0) {
+            index = Utils.randInt(0, numberOfFreeVertices);
+
+            for (int i = 0; i < freeVertices.length; i++) {
+                if (freeVertices[i]) {
+                    if (index == 0) {
+                        freeVertices[i] = false;
+                        numberOfFreeVertices--;
+                        independentSet[i] = true;
+                        deltaSolution += vertexWeights[i];
+                        for (int j = 0; j < independentSet.length; j++) {
+                            if (i != j && freeVertices[j] && edges[i][j]) {
+                                freeVertices[j] = false;
+                                numberOfFreeVertices--;
+                            }
+                        }
+                        break;
+                    }
+                    index--;
+                }
+            }
+        }
+
+        return deltaSolution;
+    }
+
+    private static boolean isFreeVertex(int vertex, boolean[][] edges, boolean[] independentSet) {
+        for (int i = 0; i < independentSet.length; i++) {
+            if (i != vertex && edges[vertex][i] && independentSet[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static int getNumberOfTrueValues(boolean[] independentSet) {
+        int size = 0;
+        for (int i = 0; i < independentSet.length; i++) {
+            if (independentSet[i]) {
+                size++;
+            }
+        }
+        return size;
+    }
+
+    private static int getIndependentSetWeight(int[] vertexWeights, boolean[] independentSet) {
+        int weight = 0;
+        for (int i = 0; i < independentSet.length; i++) {
+            if (independentSet[i]) {
+                weight += vertexWeights[i];
+            }
+        }
+        return weight;
+    }
+
+    private static void createInitialSelection(boolean[][] edges, boolean[] independentSet, boolean[] freeVertices) {
+        int numberOfFreeVertices = freeVertices.length;
+
+        while (numberOfFreeVertices > 0) {
+            for (int i = 0; i < freeVertices.length; i++) {
+                if (freeVertices[i]) {
+                    independentSet[i] = true;
+                    freeVertices[i] = false;
+                    numberOfFreeVertices--;
+                    for (int j = 0; j < edges.length; j++) {
+                        if (edges[i][j]) {
+                            freeVertices[j] = false;
+                            numberOfFreeVertices--;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public int getNumberOfSharedVertices(P3 a, P3 b) {
+        int sharedVertices = 0;
+        if (a.getU() == b.getU() || a.getU() == b.getV() || a.getU() == b.getW()) {
+            sharedVertices++;
+        }
+        if (a.getV() == b.getU() || a.getV() == b.getV() || a.getV() == b.getW()) {
+            sharedVertices++;
+        }
+        if (a.getW() == b.getU() || a.getW() == b.getV() || a.getW() == b.getW()) {
+            sharedVertices++;
+        }
+        return sharedVertices;
+    }
+
     public int getLowerBound2BasedOnMaximumWeightIndependentSet(List<P3> p3List) {
         Map<P3, P3WithSharedEdgeP3s> p3WithSharedEdgeP3sMap = P3WithSharedEdgeP3s.fromP3List(this, p3List);
         Set<P3> freeP3s = new HashSet<>(p3List);
@@ -600,7 +790,6 @@ public class Graph {
     /**
      *
      * @param p3WithSharedEdgeP3sMap
-     * @param freeP3s
      * @param selectedP3s
      * @return deltaSolution
      */

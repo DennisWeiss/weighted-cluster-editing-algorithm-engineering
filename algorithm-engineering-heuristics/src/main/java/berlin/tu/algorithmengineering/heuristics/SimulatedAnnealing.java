@@ -108,6 +108,10 @@ public class SimulatedAnnealing {
     }
 
     private static int getDeltaCost(Graph graph, boolean[][] resultEdgeExists, int vertex, int moveToVertex) {
+        if (resultEdgeExists[vertex][moveToVertex]) {
+            return 0;
+        }
+
         int deltaCost = 0;
 
         for (int i = 0; i < graph.getNumberOfVertices(); i++) {
