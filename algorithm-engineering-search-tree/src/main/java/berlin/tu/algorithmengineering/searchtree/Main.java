@@ -267,10 +267,10 @@ public class Main {
         return weightedClusterEditingBinarySearch(graph, k + 1, hi);
     }
 
-    private static ResultEdgeExistsWithSolutionSize getUpperBound(Graph graph, int iter, boolean simulatedAnnealing) {
+    private static ResultEdgeExistsWithSolutionSize getUpperBound(Graph graph, int greedyIterations, int simulatedAnnealingIterations) {
         ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize = new ResultEdgeExistsWithSolutionSize(null, Integer.MAX_VALUE);
 
-        for (int i = 0; i < iter; i++) {
+        for (int i = 0; i < greedyIterations; i++) {
             boolean[][] heuristicResultEdgeExists = Heuristics.getGreedyHeuristicNeighborhood(graph);
             int heuristicCost = Utils.getCostToChange(graph, heuristicResultEdgeExists);
             if (heuristicCost < resultEdgeExistsWithSolutionSize.getSolutionSize()) {
@@ -279,9 +279,9 @@ public class Main {
             }
         }
 
-        if (simulatedAnnealing) {
+        if (simulatedAnnealingIterations > 0) {
             SimulatedAnnealing.performSimulatedAnnealing(
-                    graph, Utils.copy(resultEdgeExistsWithSolutionSize.getResultEdgeExists(), graph.getNumberOfVertices()), 20_000, resultEdgeExistsWithSolutionSize
+                    graph, Utils.copy(resultEdgeExistsWithSolutionSize.getResultEdgeExists(), graph.getNumberOfVertices()), simulatedAnnealingIterations, resultEdgeExistsWithSolutionSize
             );
         }
 
@@ -289,7 +289,7 @@ public class Main {
     }
 
     private static ResultEdgeExistsWithSolutionSize weightedClusterEditingOptim(Graph graph) {
-        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(graph, 32, true);
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeOfUpperBound = getUpperBound(graph, 32, 20_000);
 
         return weightedClusterEditingOptim(
                 graph, 0, resultEdgeExistsWithSolutionSizeOfUpperBound.getResultEdgeExists(),
@@ -362,14 +362,14 @@ public class Main {
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
         MergeVerticesInfo mergeVerticesInfo = graph.mergeVertices(p3.getU(), p3.getV());
-        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeUpperBoundAfterMerge = getUpperBound(graph, 16, false);
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeUpperBoundAfterMerge = getUpperBound(graph, 8, 200);
         graph.revertMergeVertices(mergeVerticesInfo);
 
         int costToFlip = graph.flipEdgeAndSetForbidden(p3.getU(), p3.getV());
-        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionsSizeUpperBoundAfterDeletion = getUpperBound(graph, 16, false);
+        ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSizeUpperBoundAfterDeletion = getUpperBound(graph, 8, 200);
         graph.flipBackForbiddenEdge(p3.getU(), p3.getV(), costToFlip);
 
-        if (resultEdgeExistsWithSolutionsSizeUpperBoundAfterDeletion.getSolutionSize() < resultEdgeExistsWithSolutionSizeUpperBoundAfterMerge.getSolutionSize()) {
+        if (resultEdgeExistsWithSolutionSizeUpperBoundAfterDeletion.getSolutionSize() + mergeVerticesInfo.getCost() < resultEdgeExistsWithSolutionSizeUpperBoundAfterMerge.getSolutionSize() - costToFlip) {
             costToFlip = graph.flipEdgeAndSetForbidden(p3.getU(), p3.getV());
             ResultEdgeExistsWithSolutionSize solutionAfterDeletion = weightedClusterEditingOptim(
                     graph, costToEdit - costToFlip, upperBoundSolutionEdgeExists, upperBound
