@@ -23,10 +23,11 @@ configMap = dict((name, value) for name, value in zip(params[::2], params[1::2])
 # Construct the call string to Spear.
 #spear_binary = os.path.dirname(os.path.realpath(__file__))+"/Spear-32_1.2.1"
 #cmd = "%s --seed %d --model-stdout --dimacs %s --tmout %d" %(spear_binary, seed, instance, cutoff)       
-#for name, value in configMap.items():
-#    cmd += " -%s %s" %(name,  value)
 
-cmd = "timeout %s java -jar team3.jar 0 0 1 32 20000 5 < %s" % (cutoff, instance)
+#myParams = "" # custom params e.g. 0 0 1 32 20000 5
+myParams = ' '.join(configMap.values())
+
+cmd = "timeout %s java -jar team3.jar %s < %s" % (cutoff, myParams,  instance)
 
 # Execute the call and track its runtime.
 print(cmd)

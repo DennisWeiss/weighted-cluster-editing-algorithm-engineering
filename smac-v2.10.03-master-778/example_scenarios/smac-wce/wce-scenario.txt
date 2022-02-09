@@ -1,7 +1,7 @@
 pcs-file = example_scenarios/smac-wce/params.pcs
 runObj = RUNTIME
-cutoffTime = 1
-wallclock-limit = 30
+cutoffTime = 10
+wallclock-limit = 60
 deterministic = 0
 instance_file = example_scenarios/smac-wce/instances-train.txt
 test_instance_file = example_scenarios/smac-wce/instances-test.txt
