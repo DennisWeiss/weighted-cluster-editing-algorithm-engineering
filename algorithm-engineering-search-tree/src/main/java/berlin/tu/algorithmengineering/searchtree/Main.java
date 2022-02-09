@@ -366,6 +366,9 @@ public class Main {
         List<P3> p3List = graph.findAllP3();
 
         if (p3List.isEmpty()) {
+            if (originalWeightsBeforeHeavyNonEdgeReduction != null) {
+                DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
+            }
             return new ResultEdgeExistsWithSolutionSize(Utils.copy(graph.getEdgeExists(), graph.getNumberOfVertices()), costToEdit);
         }
 
@@ -419,6 +422,9 @@ public class Main {
                     }
                 }
 
+                if (originalWeightsBeforeHeavyNonEdgeReduction != null) {
+                    DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
+                }
                 return new ResultEdgeExistsWithSolutionSize(resultEdgeExists, costToEdit);
             }
         }
@@ -428,6 +434,9 @@ public class Main {
         if (recursiveSteps == 1 || Utils.RANDOM.nextDouble() < PROBABILITY_TO_COMPUTE_LP_LOWERBOUND) {
             double lowerBound = LpLowerBound.getLowerBoundOrTools(graph);
             if (costToEdit + lowerBound >= upperBound) {
+                if (originalWeightsBeforeHeavyNonEdgeReduction != null) {
+                    DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
+                }
                 return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
             }
         }
