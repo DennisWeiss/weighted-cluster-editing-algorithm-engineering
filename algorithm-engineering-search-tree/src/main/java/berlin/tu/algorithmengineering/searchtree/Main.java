@@ -22,7 +22,7 @@ public class Main {
     public static final int FORBIDDEN_VALUE = (int) -Math.pow(2, 16);
 
     private static int recursiveSteps = 0;
-    private static double PROBABILITY_TO_APPLY_DATA_REDUCTIONS = 0; //TODO ONLY =0 is working!
+    private static double PROBABILITY_TO_APPLY_DATA_REDUCTIONS = 1;
     private static double PROBABILITY_TO_SPLIT_INTO_CONNECTED_COMPONENTS = 1;
     private static double PROBABILITY_TO_COMPUTE_LP_LOWERBOUND = 1;
 
@@ -346,14 +346,19 @@ public class Main {
                             graph, costToEdit + MergeVerticesInfo.getTotalCost(mergeVerticesInfos), upperBoundSolutionEdgeExists, upperBound
                     );
 
-                    for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
-                        if (solutionAfterMerge.getSolutionSize() < upperBound) {
+                    if (solutionAfterMerge.getSolutionSize() < upperBound) {
+                        upperBoundSolutionEdgeExists = solutionAfterMerge.getResultEdgeExists();
+                        upperBound = solutionAfterMerge.getSolutionSize();
+                        for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
                             upperBoundSolutionEdgeExists = Utils.reconstructMergeForResultEdgeExists(
-                                    solutionAfterMerge.getResultEdgeExists(), graph, mergeVerticesInfos[j]
+                                    upperBoundSolutionEdgeExists, graph, mergeVerticesInfos[j]
                             );
-                            upperBound = solutionAfterMerge.getSolutionSize();
+                            graph.revertMergeVertices(mergeVerticesInfos[j]);
                         }
-                        graph.revertMergeVertices(mergeVerticesInfos[j]);
+                    }else{
+                        for (int j = mergeVerticesInfos.length - 1; j >= 0; j--) {
+                            graph.revertMergeVertices(mergeVerticesInfos[j]);
+                        }
                     }
 
                     DataReduction.revertHeavyNonEdgeReduction(graph, originalWeightsBeforeHeavyNonEdgeReduction);
