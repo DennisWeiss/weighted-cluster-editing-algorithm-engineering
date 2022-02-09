@@ -432,6 +432,13 @@ public class Main {
         }
         recursiveSteps++;
 
+        //Lower Bound 2
+        if (Utils.RANDOM.nextDouble() < ALGORITHM_CONFIGURATION.getProbabilityToComputeLowerBound2()){
+            if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
+                return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
+            }
+        }
+
         //LP lower bound
         if (recursiveSteps == 1 || Utils.RANDOM.nextDouble() < ALGORITHM_CONFIGURATION.getProbabilityToComputeLpLowerBound()) {
             double lowerBound = LpLowerBound.getLowerBoundOrTools(graph);
@@ -440,12 +447,6 @@ public class Main {
             }
         }
 
-        //Lower Bound 2
-        if (Utils.RANDOM.nextDouble() < ALGORITHM_CONFIGURATION.getProbabilityToComputeLowerBound2()){
-            if (costToEdit + graph.getLowerBound2(p3List) >= upperBound) {
-                return new ResultEdgeExistsWithSolutionSize(upperBoundSolutionEdgeExists, upperBound);
-            }
-        }
 
         P3 p3 = getBiggestWeightP3(graph, p3List);
 
