@@ -49,14 +49,15 @@ public class SimulatedAnnealing {
 
     public static void performSimulatedAnnealing(Graph graph, boolean[][] resultEdgeExists,
                                                  int iterations,
-                                                 ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize) {
+                                                 ResultEdgeExistsWithSolutionSize resultEdgeExistsWithSolutionSize,
+                                                 double tStart) {
         int cost = Utils.getCostToChange(graph, resultEdgeExists);
         if (cost < resultEdgeExistsWithSolutionSize.getSolutionSize()) {
             resultEdgeExistsWithSolutionSize.setResultEdgeExists(Utils.copy(resultEdgeExists, graph.getNumberOfVertices()));
             resultEdgeExistsWithSolutionSize.setSolutionSize(cost);
         }
 
-        double t = T;
+        double t = tStart;
 
         for (int i = 0; i < iterations; i++) {
             int vertex = Utils.randInt(0, graph.getNumberOfVertices());
