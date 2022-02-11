@@ -319,7 +319,7 @@ public class Main {
 
         //data reductions
         Stack<OriginalWeightsInfo> originalWeightsBeforeHeavyNonEdgeReduction = null;
-        if (Utils.RANDOM.nextDouble() < ALGORITHM_CONFIGURATION.getProbabilityToSplitIntoConnectedComponents()) {
+        if (Utils.RANDOM.nextDouble() < ALGORITHM_CONFIGURATION.getProbabilityToApplyDataReductions()) {
             originalWeightsBeforeHeavyNonEdgeReduction = DataReduction.applyHeavyNonEdgeReduction(graph);
 
             int remainingCost = upperBound - costToEdit;

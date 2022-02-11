@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Utils {
 
-    public static final Random RANDOM = new Random(1337);
+    public static final Random RANDOM = new Random();//1337
 
     public static boolean[][] reconstructMergeForResultEdgeExists(boolean[][] resultEdgeExists, Graph graph, MergeVerticesInfo mergeVerticesInfo) {
         boolean[][] resultEdgeExistsCopy = copy(resultEdgeExists, graph.getNumberOfVertices() + 1);
