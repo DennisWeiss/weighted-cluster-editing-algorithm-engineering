@@ -24,13 +24,21 @@ public class Main {
     public static final AlgorithmConfiguration ALGORITHM_CONFIGURATION = new AlgorithmConfiguration();
 
     public static void main(String[] args) {
-        ALGORITHM_CONFIGURATION.setProbabilityToSplitIntoConnectedComponents(Double.parseDouble(args[0]));
-        ALGORITHM_CONFIGURATION.setProbabilityToComputeLpLowerBound(Double.parseDouble(args[1]));
-        ALGORITHM_CONFIGURATION.setProbabilityToComputeLowerBound2(Double.parseDouble(args[2]));
-        ALGORITHM_CONFIGURATION.setProbabilityToApplyDataReductions(Double.parseDouble(args[3]));
-        ALGORITHM_CONFIGURATION.setGreedyHeuristicIterations(Integer.parseInt(args[4]));
-        ALGORITHM_CONFIGURATION.setSimulatedAnnealingIterations(Integer.parseInt(args[5]));
-        ALGORITHM_CONFIGURATION.settStart(Double.parseDouble(args[6]));
+//        ALGORITHM_CONFIGURATION.setProbabilityToSplitIntoConnectedComponents(Double.parseDouble(args[0]));
+//        ALGORITHM_CONFIGURATION.setProbabilityToComputeLpLowerBound(Double.parseDouble(args[1]));
+//        ALGORITHM_CONFIGURATION.setProbabilityToComputeLowerBound2(Double.parseDouble(args[2]));
+//        ALGORITHM_CONFIGURATION.setProbabilityToApplyDataReductions(Double.parseDouble(args[3]));
+//        ALGORITHM_CONFIGURATION.setGreedyHeuristicIterations(Integer.parseInt(args[4]));
+//        ALGORITHM_CONFIGURATION.setSimulatedAnnealingIterations(Integer.parseInt(args[5]));
+//        ALGORITHM_CONFIGURATION.settStart(Double.parseDouble(args[6]));
+
+        ALGORITHM_CONFIGURATION.setProbabilityToSplitIntoConnectedComponents(0.6499770324707258);
+        ALGORITHM_CONFIGURATION.setProbabilityToComputeLpLowerBound(0);
+        ALGORITHM_CONFIGURATION.setProbabilityToComputeLowerBound2(0.7682387087508281);
+        ALGORITHM_CONFIGURATION.setProbabilityToApplyDataReductions(0);
+        ALGORITHM_CONFIGURATION.setGreedyHeuristicIterations(64);
+        ALGORITHM_CONFIGURATION.setSimulatedAnnealingIterations(16384);
+        ALGORITHM_CONFIGURATION.settStart(1.2759364543052492);
 
         Graph graph = Utils.readGraphFromConsoleInput();
 
