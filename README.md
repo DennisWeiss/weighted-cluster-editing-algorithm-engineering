@@ -6,6 +6,9 @@
 
 Our algorithm solves the problem by solving the underlying optimization problem directly by branching on merging two vertices of a P3 and branching on deleting an existing edge of a P3. During the recursive branching we use computation of upper and lower bounds to prune the search tree.
 
+More information can be found in our handouts (short papers) under https://github.com/DennisWeiss/weighted-cluster-editing-algorithm-engineering/blob/master/papers/ 
+
+...and particularly in our final handout https://github.com/DennisWeiss/weighted-cluster-editing-algorithm-engineering/blob/master/papers/handout5.pdf
 
 ## Installation instructions
 
